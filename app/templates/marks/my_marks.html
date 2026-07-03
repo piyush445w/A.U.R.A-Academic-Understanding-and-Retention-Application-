@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+
+{% block title %}My Marks - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Dashboard</a></li>
+<li class="breadcrumb-item active">My Marks</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-chart-line me-2"></i>My Academic Performance
+        </h1>
+        <div>
+            <a href="{{ url_for('main.dashboard') }}" class="btn btn-sm btn-outline-secondary me-2">
+                <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow h-100">
+                <div class="card-body text-center">
+                    <div class="h4 mb-1 text-primary">{{ marks|length if marks else 0 }}</div>
+                    <div class="text-muted small">Total Exams</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow h-100">
+                <div class="card-body text-center">
+                    <div class="h4 mb-1 text-success">{{ "%.1f"|format(average_marks) if average_marks else 0 }}%</div>
+                    <div class="text-muted small">Average Score</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow h-100">
+                <div class="card-body text-center">
+                    <div class="h4 mb-1 {{ 'text-success' if passing_rate >= 80 else 'text-warning' if passing_rate >= 50 else 'text-danger' }}">
+                        {{ passing_rate if passing_rate else 0 }}%
+                    </div>
+                    <div class="text-muted small">Passing Rate</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card shadow h-100">
+                <div class="card-body text-center">
+                    <div class="h4 mb-1 text-info">{{ failing_count if failing_count else 0 }}</div>
+                    <div class="text-muted small">Failed Exams</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Marks Table -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">
+                <i class="fas fa-list me-2"></i>All Exam Results
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Subject</th>
+                            <th>Exam Type</th>
+                            <th>Marks</th>
+                            <th>Percentage</th>
+                            <th>Grade</th>
+                            <th>Date</th>
+                            <th>Remarks</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if marks %}
+                            {% for mark in marks %}
+                            <tr>
+                                <td>
+                                    <strong>{{ mark.subject.subject_name if mark.subject else 'N/A' }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-secondary">{{ mark.exam_type }}</span>
+                                </td>
+                                <td>
+                                    <strong class="text-primary">{{ mark.marks_obtained }} / {{ mark.max_marks }}</strong>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if mark.percentage >= 75 else 'warning' if mark.percentage >= 50 else 'danger' }}">
+                                        {{ "%.1f"|format(mark.percentage) }}%
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge bg-{{ 'success' if mark.grade in ['A+', 'A'] else 'warning' if mark.grade in ['B+', 'B'] else 'danger' }}">
+                                        {{ mark.grade }}
+                                    </span>
+                                </td>
+                                <td>{{ mark.exam_date.strftime('%Y-%m-%d') if mark.exam_date else 'N/A' }}</td>
+                                <td>
+                                    {% if mark.remarks %}
+                                        <span class="text-muted small" title="{{ mark.remarks }}">
+                                            {{ mark.remarks[:50] }}{% if mark.remarks|length > 50 %}...{% endif %}
+                                        </span>
+                                    {% else %}
+                                        <span class="text-muted">-</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center text-muted py-5">
+                                    <i class="fas fa-inbox fa-3x mb-3 opacity-50"></i>
+                                    <p>No marks records found.</p>
+                                    <small>Your teachers will add marks here as exams are conducted.</small>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="row">
+        <div class="col-md-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Performance Summary</h6>
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        {% if marks %}
+                        <li class="mb-2"><strong>Average:</strong> {{ "%.1f"|format(average_marks) if average_marks else 0 }}%</li>
+                        <li class="mb-2"><strong>Best Score:</strong> {{ best_score|default(0) }}%</li>
+                        <li class="mb-2"><strong>Exams Passed:</strong> {{ passed_count|default(0) }} / {{ marks|length }}</li>
+                        {% else %}
+                        <li class="text-muted">No data available</li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

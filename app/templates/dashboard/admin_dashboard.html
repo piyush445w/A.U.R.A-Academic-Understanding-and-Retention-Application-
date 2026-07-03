@@ -1,0 +1,448 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Admin Dashboard</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-tachometer-alt me-2"></i>Admin Dashboard
+        </h1>
+        <div>
+            <a href="{{ url_for('admin.reports_page') }}" class="btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-download fa-sm text-white-50 me-1"></i>Generate Report
+            </a>
+        </div>
+    </div>
+    
+    <!-- Summary Cards Row -->
+    <div class="row g-4 mb-4">
+        <!-- Total Students Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card primary h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="stat-label text-primary">Total Students</div>
+                            <div class="stat-value" id="totalStudents">{{ stats.total_students if stats else 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-user-graduate fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- High Risk Students Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card danger h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="stat-label text-danger">High Risk Students</div>
+                            <div class="stat-value" id="highRiskStudents">{{ stats.high_risk_students if stats else 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-exclamation-triangle fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Average Attendance Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card success h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="stat-label text-success">Avg Attendance</div>
+                            <div class="stat-value" id="avgAttendance">{{ stats.avg_attendance if stats else 0 }}%</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-check fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Pending Fees Card -->
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning h-100">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="stat-label text-warning">Pending Fees</div>
+                            <div class="stat-value" id="pendingFees">${{ stats.pending_fees if stats else 0 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-money-bill-wave fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <!-- Risk Distribution Chart -->
+        <div class="col-xl-4 col-lg-6">
+            <div class="card shadow mb-4 h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>Risk Distribution
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-pie pt-4 pb-2">
+                        <canvas id="riskDistributionChart"></canvas>
+                    </div>
+                    <div class="mt-4 text-center small">
+                        <span class="me-2">
+                            <i class="fas fa-circle text-success"></i> Low Risk
+                        </span>
+                        <span class="me-2">
+                            <i class="fas fa-circle text-warning"></i> Medium Risk
+                        </span>
+                        <span class="me-2">
+                            <i class="fas fa-circle text-danger"></i> High Risk
+                        </span>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Attendance Trends Chart -->
+        <div class="col-xl-4 col-lg-6">
+            <div class="card shadow mb-4 h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-line me-2"></i>Attendance Trends
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-area">
+                        <canvas id="attendanceTrendsChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Fee Status Chart -->
+        <div class="col-xl-4 col-lg-6">
+            <div class="card shadow mb-4 h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-bar me-2"></i>Fee Status
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="chart-bar">
+                        <canvas id="feeStatusChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Recent Alerts and Quick Actions Row -->
+    <div class="row g-4 mb-4">
+        <!-- Recent Alerts -->
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4 h-100">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bell me-2"></i>Recent Alerts
+                    </h6>
+                    <a href="{{ url_for('admin.alerts_page') }}" class="btn btn-sm btn-primary">View All</a>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover table-sm mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-4">Student</th>
+                                    <th>Alert Type</th>
+                                    <th>Severity</th>
+                                    <th>Message</th>
+                                    <th>Date</th>
+                                    <th class="pe-4">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody id="recentAlertsTable">
+                                {% if alerts %}
+                                    {% for alert in alerts %}
+                                    <tr>
+                                        <td class="ps-4 align-middle">{{ alert.student_name|default('N/A') }}</td>
+                                        <td class="align-middle">{{ alert.alert_type }}</td>
+                                        <td class="align-middle">
+                                            <span class="badge bg-{{ 'danger' if alert.severity == 'Critical' else ('warning' if alert.severity == 'Warning' else 'info') }}">
+                                                {{ alert.severity }}
+                                            </span>
+                                        </td>
+                                        <td class="align-middle">{{ alert.message[:50] }}{{ '...' if alert.message|length > 50 else '' }}</td>
+                                        <td class="align-middle">{{ alert.created_at.strftime('%Y-%m-%d') if alert.created_at else 'N/A' }}</td>
+                                        <td class="pe-4 align-middle">
+                                            <button class="btn btn-sm btn-outline-primary" onclick="viewAlert({{ alert.id }})">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted py-4">No recent alerts</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Quick Actions -->
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4 h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.students_page') }}" class="btn btn-outline-primary btn-lg text-start">
+                            <i class="fas fa-user-graduate me-2"></i>Manage Students
+                        </a>
+                        <a href="{{ url_for('admin.attendance_page') }}" class="btn btn-outline-success btn-lg text-start">
+                            <i class="fas fa-calendar-check me-2"></i>Mark Attendance
+                        </a>
+                        <a href="{{ url_for('admin.marks_page') }}" class="btn btn-outline-info btn-lg text-start">
+                            <i class="fas fa-chart-line me-2"></i>Add Marks
+                        </a>
+                        <a href="{{ url_for('admin.fees_page') }}" class="btn btn-outline-warning btn-lg text-start">
+                            <i class="fas fa-money-bill-wave me-2"></i>Manage Fees
+                        </a>
+                        <a href="{{ url_for('admin.users_page') }}" class="btn btn-outline-secondary btn-lg text-start">
+                            <i class="fas fa-users-cog me-2"></i>User Management
+                        </a>
+                        <a href="{{ url_for('admin.predictions_page') }}" class="btn btn-outline-danger btn-lg text-start">
+                            <i class="fas fa-brain me-2"></i>Train ML Model
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- High Risk Students Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-exclamation-triangle me-2"></i>High Risk Students
+                    </h6>
+                    <a href="{{ url_for('admin.predictions_page') }}?high_risk=1" class="btn btn-sm btn-danger">Export List</a>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover" width="100%" cellspacing="0">
+                            <thead>
+                                <tr>
+                                    <th>Student ID</th>
+                                    <th>Name</th>
+                                    <th>Course</th>
+                                    <th>Semester</th>
+                                    <th>Risk Score</th>
+                                    <th>Attendance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="highRiskStudentsTable">
+                                {% if high_risk_students %}
+                                    {% for student in high_risk_students %}
+                                    <tr>
+                                        <td>{{ student.student_id }}</td>
+                                        <td>{{ student.full_name }}</td>
+                                        <td>{{ student.course }}</td>
+                                        <td>{{ student.semester }}</td>
+                                        <td>
+                                            <span class="badge bg-danger">{{ student.risk_score }}%</span>
+                                        </td>
+                                        <td>{{ student.attendance_percentage }}%</td>
+                                        <td>
+                                            <a href="{{ url_for('admin.student_detail', student_id=student.id) }}" class="btn btn-sm btn-outline-primary me-1">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <button class="btn btn-sm btn-outline-success" onclick="sendAlert({{ student.id }})">
+                                                <i class="fas fa-bell"></i>
+                                            </button>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="7" class="text-center text-muted">No high-risk students found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Risk Distribution Chart
+    const riskCtx = document.getElementById('riskDistributionChart').getContext('2d');
+    const riskChart = new Chart(riskCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Low Risk', 'Medium Risk', 'High Risk'],
+            datasets: [{
+                data: [
+                    {{ risk_distribution.low if risk_distribution else 0 }},
+                    {{ risk_distribution.medium if risk_distribution else 0 }},
+                    {{ risk_distribution.high if risk_distribution else 0 }}
+                ],
+                backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b'],
+                hoverBackgroundColor: ['#17a673', '#dda20a', '#c9302c'],
+                hoverBorderColor: "rgba(234, 236, 244, 1)",
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            cutout: '70%',
+        },
+    });
+    
+    // Attendance Trends Chart
+    const attendanceCtx = document.getElementById('attendanceTrendsChart').getContext('2d');
+    const attendanceChart = new Chart(attendanceCtx, {
+        type: 'line',
+        data: {
+            labels: {{ attendance_labels | tojson if attendance_labels else '["Jan", "Feb", "Mar", "Apr", "May", "Jun"]' }},
+            datasets: [{
+                label: 'Attendance %',
+                lineTension: 0.3,
+                backgroundColor: "rgba(78, 115, 223, 0.05)",
+                borderColor: "rgba(78, 115, 223, 1)",
+                pointRadius: 3,
+                pointBackgroundColor: "rgba(78, 115, 223, 1)",
+                pointBorderColor: "rgba(78, 115, 223, 1)",
+                pointHoverRadius: 3,
+                pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
+                pointHitRadius: 10,
+                pointBorderWidth: 2,
+                data: {{ attendance_data | tojson if attendance_data else '[85, 82, 88, 85, 90, 87]' }},
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: false,
+                    max: 100,
+                    ticks: {
+                        callback: function(value) {
+                            return value + '%';
+                        }
+                    }
+                }
+            }
+        },
+    });
+    
+    // Fee Status Chart
+    const feeCtx = document.getElementById('feeStatusChart').getContext('2d');
+    const feeChart = new Chart(feeCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Paid', 'Pending', 'Overdue'],
+            datasets: [{
+                label: 'Students',
+                backgroundColor: ['#1cc88a', '#f6c23e', '#e74a3b'],
+                hoverBackgroundColor: ['#17a673', '#dda20a', '#c9302c'],
+                borderColor: ['#1cc88a', '#f6c23e', '#e74a3b'],
+                data: [
+                    {{ fee_status.paid if fee_status else 0 }},
+                    {{ fee_status.pending if fee_status else 0 }},
+                    {{ fee_status.overdue if fee_status else 0 }}
+                ],
+            }],
+        },
+        options: {
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: false
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        },
+    });
+    
+    // View alert details
+    function viewAlert(alertId) {
+        // Implement alert view modal
+        alert('View alert: ' + alertId);
+    }
+    
+    // View student details
+    function viewStudent(studentId) {
+        window.location.href = '{{ url_for("admin.student_detail", student_id=0) }}'.replace('/0', '/' + studentId);
+    }
+    
+    // Send alert to student
+    function sendAlert(studentId) {
+        if (confirm('Send alert notification to this student?')) {
+            fetch('/api/alerts/send', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    student_id: studentId,
+                    alert_type: 'manual',
+                    message: 'Please contact your advisor'
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || 'Alert sent successfully');
+            })
+            .catch(error => {
+                alert('Error sending alert');
+            });
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}

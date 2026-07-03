@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Reports - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Academic Reports</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-graduation-cap me-2"></i>Academic Reports
+        </h1>
+        <div>
+            <a href="{{ url_for('admin.export_academic_excel', course=selected_course|default(''), semester=selected_semester|default(''), subject_id=selected_subject_id|default(''), exam_type=exam_type|default('')) }}" 
+               class="btn btn-sm btn-outline-primary" 
+               aria-label="Export academic report as CSV">
+                <i class="fas fa-download me-1"></i>Export CSV
+            </a>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Report Filters</h6>
+        </div>
+        <div class="card-body">
+              <form method="GET" action="{{ url_for('admin.report_academic_page') }}">
+                  <div class="row g-3">
+                      <div class="col-md-3">
+                          <label for="course" class="form-label">Course</label>
+                          <select class="form-select" name="course" id="course">
+                              <option value="">All Courses</option>
+                              {% for course in courses %}
+                              <option value="{{ course }}" {% if course == selected_course %}selected{% endif %}>{{ course }}</option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                      <div class="col-md-3">
+                          <label for="semester" class="form-label">Semester</label>
+                          <select class="form-select" name="semester" id="semester">
+                              <option value="">All Semesters</option>
+                              {% for sem in range(1, 9) %}
+                              <option value="{{ sem }}" {% if sem == selected_semester %}selected{% endif %}>Semester {{ sem }}</option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                      <div class="col-md-3">
+                          <label for="subject_id" class="form-label">Subject</label>
+                          <select class="form-select" name="subject_id" id="subject_id">
+                              <option value="">All Subjects</option>
+                              {% for subject in subjects %}
+                              <option value="{{ subject.id }}" {% if subject.id == selected_subject_id %}selected{% endif %}>{{ subject.subject_name }}</option>
+                              {% endfor %}
+                          </select>
+                      </div>
+                      <div class="col-md-3">
+                          <label for="exam_type" class="form-label">Exam Type</label>
+                          <select class="form-select" name="exam_type" id="exam_type">
+                              <option value="">All Types</option>
+                              <option value="Midterm" {% if exam_type == 'Midterm' %}selected{% endif %}>Midterm</option>
+                              <option value="Final" {% if exam_type == 'Final' %}selected{% endif %}>Final</option>
+                              <option value="Quiz" {% if exam_type == 'Quiz' %}selected{% endif %}>Quiz</option>
+                          </select>
+                      </div>
+                      <div class="col-12">
+                          <button type="submit" class="btn btn-primary">Generate Report</button>
+                      </div>
+                  </div>
+              </form>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card primary h-100">
+                <div class="card-body">
+                    <div class="stat-label text-primary">Average Score</div>
+                    <div class="stat-value">{{ stats.avg_score if stats else 0 }}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card success h-100">
+                <div class="card-body">
+                    <div class="stat-label text-success">Pass Rate</div>
+                    <div class="stat-value">{{ stats.pass_rate if stats else 0 }}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning h-100">
+                <div class="card-body">
+                    <div class="stat-label text-warning">At Risk</div>
+                    <div class="stat-value">{{ stats.at_risk if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card danger h-100">
+                <div class="card-body">
+                    <div class="stat-label text-danger">Failing</div>
+                    <div class="stat-value">{{ stats.failing if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Academic Performance Data</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">Student ID</th>
+                            <th style="width: 150px;">Name</th>
+                            <th style="width: 100px;">Course</th>
+                            <th style="width: 120px;">Subject</th>
+                            <th style="width: 80px;">Marks</th>
+                            <th style="width: 200px;">Percentage</th>
+                            <th style="width: 120px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in academic_data %}
+                        <tr>
+                            <td>{{ record.student.student_id if record.student else 'N/A' }}</td>
+                            <td>{{ record.student.full_name if record.student else 'N/A' }}</td>
+                            <td>{{ record.student.course if record.student else 'N/A' }}</td>
+                            <td>{{ record.subject.subject_name if record.subject else 'N/A' }}</td>
+                            <td class="text-center">{{ record.marks_obtained }}/{{ record.max_marks }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 14px; min-width: 60px;">
+                                        <div class="progress-bar bg-{{ 'success' if (record.marks_obtained/record.max_marks*100) >= 75 else 'warning' if (record.marks_obtained/record.max_marks*100) >= 50 else 'danger' }}" 
+                                             style="width: {{ (record.marks_obtained/record.max_marks*100)|round(1) }}%">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">{{ (record.marks_obtained/record.max_marks*100)|round(1) }}%</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if (record.marks_obtained/record.max_marks*100) >= 75 else 'warning' if (record.marks_obtained/record.max_marks*100) >= 50 else 'danger' }}">
+                                    {{ 'Excellent' if (record.marks_obtained/record.max_marks*100) >= 75 else 'Average' if (record.marks_obtained/record.max_marks*100) >= 50 else 'Needs Improvement' }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

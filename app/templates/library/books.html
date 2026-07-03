@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+
+{% block title %}Library Books - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Library Books</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-book me-2"></i>Library Books
+        </h1>
+        <a href="#" class="btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus me-1"></i>Add Book
+        </a>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">Book Catalog</h6>
+            <input type="text" class="form-control form-control-sm w-auto" placeholder="Search books...">
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ISBN</th>
+                            <th>Title</th>
+                            <th>Author</th>
+                            <th>Category</th>
+                            <th>Total Copies</th>
+                            <th>Available</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for book in books %}
+                        <tr>
+                            <td>{{ book.isbn }}</td>
+                            <td>{{ book.title }}</td>
+                            <td>{{ book.author }}</td>
+                            <td>{{ book.category }}</td>
+                            <td>{{ book.total_copies }}</td>
+                            <td>{{ book.available_copies }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if book.available_copies > 0 else 'danger' }}">
+                                    {{ 'Available' if book.available_copies > 0 else 'Unavailable' }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-eye"></i></a>
+                                <a href="#" class="btn btn-sm btn-outline-warning me-1"><i class="fas fa-edit"></i></a>
+                                <a href="#" class="btn btn-sm btn-outline-success"><i class="fas fa-book"></i></a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Create Study Group - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('study_groups.index') }}">Study Groups</a></li>
+<li class="breadcrumb-item active">Create</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Create Study Group</h1>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form id="createGroupForm">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="group_name" class="form-label">Group Name *</label>
+                        <input type="text" class="form-control" id="group_name" name="group_name" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="course" class="form-label">Course *</label>
+                        <select class="form-select" id="course" name="course" required>
+                            <option value="">Select Course</option>
+                            {% for c in courses %}
+                            <option value="{{ c }}">{{ c }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="semester" class="form-label">Semester *</label>
+                        <select class="form-select" id="semester" name="semester" required>
+                            <option value="">Select Semester</option>
+                            {% for i in range(1, 9) %}
+                            <option value="{{ i }}">Semester {{ i }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="subject_id" class="form-label">Subject</label>
+                        <select class="form-select" id="subject_id" name="subject_id">
+                            <option value="">Select Subject</option>
+                            {% for s in subjects %}
+                            <option value="{{ s.id }}">{{ s.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label for="max_members" class="form-label">Max Members *</label>
+                        <input type="number" class="form-control" id="max_members" name="max_members" value="5" min="2" max="20" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="class_rep_id" class="form-label">Class Representative</label>
+                        <select class="form-select" id="class_rep_id" name="class_rep_id">
+                            <option value="">Select Student</option>
+                            {% for s in students %}
+                            <option value="{{ s.id }}">{{ s.full_name }} ({{ s.student_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3"></textarea>
+                </div>
+
+                <div class="d-flex justify-content-between">
+                    <a href="{{ url_for('study_groups.index') }}" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create Group</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.getElementById('createGroupForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(this);
+    const data = Object.fromEntries(formData.entries());
+    
+    if (data.class_rep_id) data.class_rep_id = parseInt(data.class_rep_id);
+    if (data.subject_id) data.subject_id = parseInt(data.subject_id);
+    data.semester = parseInt(data.semester);
+    data.max_members = parseInt(data.max_members);
+    
+    fetch('{{ url_for("study_groups.create_group") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(result => {
+        if (result.group) {
+            alert('Group created successfully!');
+            window.location.href = '{{ url_for("study_groups.index") }}';
+        } else {
+            alert('Error: ' + (result.error || 'Unknown error'));
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred while creating the group.');
+    });
+});
+</script>
+{% endblock %}

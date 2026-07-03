@@ -1,0 +1,416 @@
+{% extends "base.html" %}
+
+{% block title %}Counseling & Support Dashboard - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Counseling & Support</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-hands-helping me-2"></i>Counseling & Support
+        </h1>
+        <div>
+            <a href="{{ url_for('counseling.new_session') }}" class="btn btn-sm btn-primary shadow-sm me-2">
+                <i class="fas fa-plus me-1"></i>New Session
+            </a>
+            <a href="{{ url_for('counseling.new_plan') }}" class="btn btn-sm btn-info shadow-sm">
+                <i class="fas fa-clipboard-list me-1"></i>New Support Plan
+            </a>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card primary h-100">
+                <div class="card-body">
+                    <div class="stat-label text-primary">Active Cases</div>
+                    <div class="stat-value">{{ active_cases|length }}</div>
+                    <small class="text-muted">Students in counseling</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning h-100">
+                <div class="card-body">
+                    <div class="stat-label text-warning">Upcoming Sessions</div>
+                    <div class="stat-value">{{ upcoming_sessions|length }}</div>
+                    <small class="text-muted">Next 7 days</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card danger h-100">
+                <div class="card-body">
+                    <div class="stat-label text-danger">Overdue Follow-ups</div>
+                    <div class="stat-value">{{ overdue_followups|length }}</div>
+                    <small class="text-muted">Require attention</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card info h-100">
+                <div class="card-body">
+                    <div class="stat-label text-info">Sessions This Month</div>
+                    <div class="stat-value">{{ sessions_this_month }}</div>
+                    <small class="text-muted">Completed sessions</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if risk_students_without_support %}
+    <div class="card shadow mb-4 border-left-warning">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-warning">
+                <i class="fas fa-exclamation-triangle me-2"></i>High-Risk Students Without Support
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Course</th>
+                            <th>Risk Level</th>
+                            <th>Risk Score</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in risk_students_without_support %}
+                        <tr>
+                            <td>{{ student.student_id }}</td>
+                            <td>{{ student.full_name }}</td>
+                            <td>{{ student.course }}</td>
+                            <td>
+                                {% if student.risk_level == 'Critical' %}
+                                <span class="badge" style="background: #9b59b6;">Critical</span>
+                                {% else %}
+                                <span class="badge bg-danger">High</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ student.risk_score }}%</td>
+                            <td>
+                                <a href="{{ url_for('counseling.new_session') }}?student_id={{ student.student_id }}" class="btn btn-sm btn-outline-primary">
+                                    <i class="fas fa-plus"></i> Create Session
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Active Cases</h6>
+                </div>
+                <div class="card-body">
+                    {% if active_cases %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Session Type</th>
+                                    <th>Date</th>
+                                    <th>Outcome</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in active_cases[:10] %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('counseling.student_support_history', student_id=session.student_id) }}">
+                                            {{ session.student.full_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ session.session_type }}</td>
+                                    <td>{{ session.session_date.strftime('%Y-%m-%d') }}</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'success' if session.outcome == 'Resolved' else 'warning' }}">
+                                            {{ session.outcome }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ url_for('counseling.session_detail', session_id=session.id) }}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No active cases</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-info">Upcoming Sessions</h6>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_sessions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Type</th>
+                                    <th>Date & Time</th>
+                                    <th>Mode</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for session in upcoming_sessions[:10] %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('counseling.student_support_history', student_id=session.student_id) }}">
+                                            {{ session.student.full_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ session.session_type }}</td>
+                                    <td>{{ session.session_date.strftime('%Y-%m-%d %H:%M') }}</td>
+                                    <td>{{ session.session_mode }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No upcoming sessions</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if overdue_followups %}
+    <div class="card shadow mb-4 border-left-danger">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-danger">
+                <i class="fas fa-clock me-2"></i>Overdue Follow-ups
+            </h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Session Date</th>
+                            <th>Follow-up Date</th>
+                            <th>Days Overdue</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for session in overdue_followups %}
+                        <tr>
+                            <td>
+                                <a href="{{ url_for('counseling.student_support_history', student_id=session.student_id) }}">
+                                    {{ session.student.full_name }}
+                                </a>
+                            </td>
+                            <td>{{ session.session_date.strftime('%Y-%m-%d') }}</td>
+                            <td>{{ session.follow_up_date.strftime('%Y-%m-%d') if session.follow_up_date else 'N/A' }}</td>
+                            <td>
+                                {% if session.follow_up_date %}
+                                <span class="badge bg-danger">
+                                    {% set days_overdue = (now - session.follow_up_date).days %}
+                                    {{ days_overdue }} days
+                                </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{{ url_for('counseling.new_session') }}?student_id={{ session.student_id }}" class="btn btn-sm btn-outline-warning">
+                                    <i class="fas fa-calendar-plus"></i> Schedule
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-success">Active Interventions</h6>
+                </div>
+                <div class="card-body">
+                    {% if active_interventions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Type</th>
+                                    <th>Title</th>
+                                    <th>Priority</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for intervention in active_interventions[:10] %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('counseling.student_support_history', student_id=intervention.student_id) }}">
+                                            {{ intervention.student.full_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ intervention.intervention_type }}</td>
+                                    <td>{{ intervention.title[:30] }}...</td>
+                                    <td>
+                                        <span class="badge bg-{{ 'danger' if intervention.priority == 'Urgent' else ('warning' if intervention.priority == 'High' else 'info') }}">
+                                            {{ intervention.priority }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-{{ 'primary' if intervention.status == 'In Progress' else 'secondary' }}">
+                                            {{ intervention.status }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No active interventions</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-xl-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">Overdue Interventions</h6>
+                </div>
+                <div class="card-body">
+                    {% if overdue_interventions %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Type</th>
+                                    <th>Title</th>
+                                    <th>Target Date</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for intervention in overdue_interventions[:10] %}
+                                <tr>
+                                    <td>
+                                        <a href="{{ url_for('counseling.student_support_history', student_id=intervention.student_id) }}">
+                                            {{ intervention.student.full_name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ intervention.intervention_type }}</td>
+                                    <td>{{ intervention.title[:30] }}...</td>
+                                    <td>{{ intervention.target_date.strftime('%Y-%m-%d') if intervention.target_date else 'N/A' }}</td>
+                                    <td>
+                                        <a href="{{ url_for('counseling.intervention_detail', intervention_id=intervention.id) }}" class="btn btn-sm btn-outline-danger">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No overdue interventions</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <a href="{{ url_for('counseling.sessions') }}" class="text-decoration-none">
+                                <div class="dashboard-card">
+                                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #e0e7ff 0%, #c7d2fe 100%);">
+                                        <i class="fas fa-comments"></i>
+                                    </div>
+                                    <div class="dashboard-card-info">
+                                        <div class="dashboard-card-title">All Sessions</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('counseling.support_plans') }}" class="text-decoration-none">
+                                <div class="dashboard-card">
+                                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);">
+                                        <i class="fas fa-clipboard-list"></i>
+                                    </div>
+                                    <div class="dashboard-card-info">
+                                        <div class="dashboard-card-title">Support Plans</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('counseling.interventions') }}" class="text-decoration-none">
+                                <div class="dashboard-card">
+                                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #fef9c3 0%, #fef08a 100%);">
+                                        <i class="fas fa-tasks"></i>
+                                    </div>
+                                    <div class="dashboard-card-info">
+                                        <div class="dashboard-card-title">Interventions</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                        <div class="col-md-3">
+                            <a href="{{ url_for('counseling.new_intervention') }}" class="text-decoration-none">
+                                <div class="dashboard-card">
+                                    <div class="dashboard-card-icon" style="background: linear-gradient(135deg, #fee2e2 0%, #fecaca 100%);">
+                                        <i class="fas fa-plus-circle"></i>
+                                    </div>
+                                    <div class="dashboard-card-info">
+                                        <div class="dashboard-card-title">New Intervention</div>
+                                    </div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

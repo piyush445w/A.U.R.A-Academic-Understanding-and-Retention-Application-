@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}View Complaint - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="#">Complaints</a></li>
+<li class="breadcrumb-item active">View Complaint</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-eye me-2"></i>Complaint Details
+        </h1>
+        <a href="#" class="btn btn-sm btn-outline-secondary shadow-sm">
+            <i class="fas fa-arrow-left me-1"></i>Back to List
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">{{ complaint.subject }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Category:</strong> {{ complaint.category }}
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Priority:</strong>
+                            <span class="badge bg-{{ 'danger' if complaint.priority == 'High' else 'warning' if complaint.priority == 'Medium' else 'success' }}">
+                                {{ complaint.priority }}
+                            </span>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <strong>Status:</strong>
+                            <span class="badge bg-{{ 'success' if complaint.status == 'Resolved' else 'info' if complaint.status == 'In Progress' else 'warning' }}">
+                                {{ complaint.status }}
+                            </span>
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Created:</strong> {{ complaint.created_at.strftime('%Y-%m-%d %H:%M') if complaint.created_at else 'N/A' }}
+                        </div>
+                    </div>
+                    <hr>
+                    <div class="mb-4">
+                        <strong>Description:</strong>
+                        <p class="mt-2">{{ complaint.description }}</p>
+                    </div>
+                    
+                    {% if complaint.response %}
+                    <hr>
+                    <div class="mb-4">
+                        <strong>Response:</strong>
+                        <p class="mt-2">{{ complaint.response }}</p>
+                        <small class="text-muted">Responded on: {{ complaint.responded_at.strftime('%Y-%m-%d %H:%M') if complaint.responded_at else 'N/A' }}</small>
+                    </div>
+                    {% endif %}
+                    
+                    {% if current_user.is_admin() or current_user.is_teacher() %}
+                    <hr>
+                    <form method="POST" action="#">
+                        <div class="mb-3">
+                            <label class="form-label">Add Response</label>
+                            <textarea class="form-control" rows="3" name="response"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Update Status</label>
+                            <select class="form-select" name="status">
+                                <option value="Pending" {{ 'selected' if complaint.status == 'Pending' else '' }}>Pending</option>
+                                <option value="In Progress" {{ 'selected' if complaint.status == 'In Progress' else '' }}>In Progress</option>
+                                <option value="Resolved" {{ 'selected' if complaint.status == 'Resolved' else '' }}>Resolved</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Complaint</button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

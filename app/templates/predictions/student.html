@@ -1,0 +1,136 @@
+{% extends "base.html" %}
+
+{% block title %}Student Prediction - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('admin.predictions_page') }}">Predictions</a></li>
+<li class="breadcrumb-item active">Student Prediction</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-check me-2"></i>Student Risk Prediction
+        </h1>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Select Student</h6>
+                </div>
+                <div class="card-body">
+                    <form method="GET" action="{{ url_for('admin.predictions_student_page') }}">
+                        <div class="row g-3">
+                            <div class="col-md-8">
+                                <select class="form-select" name="student_id" required>
+                                    <option value="">Select Student</option>
+                                    {% if students %}
+                                    {% for student in students %}
+                                    <option value="{{ student.id }}" {{ 'selected' if selected_student and selected_student.id == student.id else '' }}>
+                                        {{ student.student_id }} - {{ student.first_name }} {{ student.last_name }}
+                                    </option>
+                                    {% endfor %}
+                                    {% endif %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-primary w-100">Get Prediction</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if prediction %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Prediction Results for {{ selected_student.first_name }} {{ selected_student.last_name }}</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center mb-4">
+                        <div class="col-md-4">
+                            <div class="display-4 fw-bold text-{{ 'danger' if prediction.risk_level == 'High' else 'warning' if prediction.risk_level == 'Medium' else 'success' }}">
+                                {{ (prediction.risk_score * 100)|int }}%
+                            </div>
+                            <div class="text-muted">Risk Score</div>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="badge fs-4 bg-{{ 'danger' if prediction.risk_level == 'High' else 'warning' if prediction.risk_level == 'Medium' else 'success' }}">
+                                {{ prediction.risk_level }} Risk
+                            </span>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="text-muted">Prediction Date</div>
+                            <div>{{ prediction.prediction_date.strftime('%Y-%m-%d') if prediction.prediction_date else 'N/A' }}</div>
+                        </div>
+                    </div>
+                    
+                    {% if prediction.recommendations %}
+                    <hr>
+                    <h6 class="text-primary mb-3">Recommendations</h6>
+                    <div class="alert alert-info">
+                        {{ prediction.recommendations }}
+                    </div>
+                    {% endif %}
+                    
+                    <hr>
+                    <h6 class="text-primary mb-3">Risk Factors</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Attendance</span>
+                                    <span class="badge bg-{{ 'danger' if prediction.risk_level in ['High', 'Critical'] else 'warning' if prediction.risk_level == 'Medium' else 'success' }}">
+                                        {{ (prediction.attendance_percentage|default(0))|int }}%
+                                    </span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Average Marks</span>
+                                    <span class="badge bg-{{ 'danger' if prediction.average_marks|default(0) < 50 else 'warning' if prediction.average_marks|default(0) < 70 else 'success' }}">
+                                        {{ prediction.average_marks|default(0) }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="list-group">
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Fee Status</span>
+                                    <span class="badge bg-{{ 'success' if prediction.fee_status in ['Paid', 'Complete'] else 'danger' }}">
+                                        {{ prediction.fee_status|default('Unknown') }}
+                                    </span>
+                                </li>
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    <span>Prediction Type</span>
+                                    <span class="badge bg-{{ 'info' if prediction.is_manual else 'secondary' }}">
+                                        {{ 'Manual' if prediction.is_manual else 'ML Model' }}
+                                    </span>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+    
+    {% if not prediction and not students %}
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="alert alert-info">
+                No students found. Please add students to the system first.
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

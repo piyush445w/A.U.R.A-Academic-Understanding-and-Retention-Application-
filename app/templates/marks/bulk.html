@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Marks Entry - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Bulk Marks Entry</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-chart-line me-2"></i>Bulk Marks Entry
+        </h1>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Enter Marks for Multiple Students</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST" action="#">
+                <div class="row g-3 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label">Course <span class="text-danger">*</span></label>
+                        <select class="form-select" required>
+                            <option value="">Select Course</option>
+                            {% for course in courses %}
+                            <option value="{{ course }}">{{ course }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Subject <span class="text-danger">*</span></label>
+                        <select class="form-select" required>
+                            <option value="">Select Subject</option>
+                            {% for subject in subjects %}
+                            <option value="{{ subject.id }}">{{ subject.subject_name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Exam Type <span class="text-danger">*</span></label>
+                        <select class="form-select" required>
+                            <option value="">Select Type</option>
+                            <option value="Midterm">Midterm</option>
+                            <option value="Final">Final</option>
+                            <option value="Quiz">Quiz</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Student ID</th>
+                                <th>Name</th>
+                                <th>Marks Obtained</th>
+                                <th>Max Marks</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for student in students %}
+                            <tr>
+                                <td>{{ student.student_id }}</td>
+                                <td>{{ student.full_name }}</td>
+                                <td><input type="number" class="form-control form-control-sm" min="0"></td>
+                                <td><input type="number" class="form-control form-control-sm" min="1" value="100"></td>
+                                <td><input type="text" class="form-control form-control-sm"></td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                
+                <div class="mt-4">
+                    <button type="submit" class="btn btn-primary">Save All Marks</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

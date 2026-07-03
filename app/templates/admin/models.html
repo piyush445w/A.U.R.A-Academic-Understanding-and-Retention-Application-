@@ -1,0 +1,137 @@
+{% extends "base.html" %}
+
+{% block title %}ML Model Management - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">ML Models</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-robot me-2"></i>ML Model Management
+        </h1>
+        <button class="btn btn-sm btn-primary shadow-sm" onclick="trainNewModel()">
+            <i class="fas fa-cogs me-1"></i>Train New Model
+        </button>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card primary h-100">
+                <div class="card-body">
+                    <div class="stat-label text-primary">Total Models</div>
+                    <div class="stat-value">{{ stats.total_models if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card success h-100">
+                <div class="card-body">
+                    <div class="stat-label text-success">Active Model</div>
+                    <div class="stat-value">{{ stats.active_model if stats else 'None' }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning h-100">
+                <div class="card-body">
+                    <div class="stat-label text-warning">Best Accuracy</div>
+                    <div class="stat-value">{{ stats.best_accuracy if stats else 0 }}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card info h-100">
+                <div class="card-body">
+                    <div class="stat-label text-info">Last Trained</div>
+                    <div class="stat-value">{{ stats.last_trained if stats else 'N/A' }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Model History</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Model ID</th>
+                            <th>Name</th>
+                            <th>Accuracy</th>
+                            <th>Precision</th>
+                            <th>Recall</th>
+                            <th>F1 Score</th>
+                            <th>Status</th>
+                            <th>Trained</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for model in models %}
+                        <tr>
+                            <td>{{ model.id }}</td>
+                            <td>{{ model.name }}</td>
+                            <td>{{ model.accuracy }}%</td>
+                            <td>{{ model.precision }}%</td>
+                            <td>{{ model.recall }}%</td>
+                            <td>{{ model.f1_score }}%</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if model.is_active else 'secondary' }}">
+                                    {{ 'Active' if model.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td>{{ model.trained_at.strftime('%Y-%m-%d') if model.trained_at else 'N/A' }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-primary me-1" onclick="viewModel({{ model.id }})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                {% if not model.is_active %}
+                                <button class="btn btn-sm btn-outline-success" onclick="activateModel({{ model.id }})">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function trainNewModel() {
+        if (confirm('Train a new ML model with current data?')) {
+            fetch('/api/predictions/train', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message || 'Model training started');
+                    location.reload();
+                })
+                .catch(error => alert('Error training model'));
+        }
+    }
+    
+    function activateModel(modelId) {
+        if (confirm('Activate this model?')) {
+            fetch('/api/models/' + modelId + '/activate', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    alert(data.message || 'Model activated');
+                    location.reload();
+                })
+                .catch(error => alert('Error activating model'));
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}

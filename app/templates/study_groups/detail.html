@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %}{{ group.group_name }} - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('study_groups.index') }}">Study Groups</a></li>
+<li class="breadcrumb-item active">{{ group.group_name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">{{ group.group_name }}</h1>
+        <div>
+            <a href="{{ url_for('study_groups.edit_page', group_id=group.id) }}" class="btn btn-warning">
+                <i class="fas fa-edit me-2"></i>Edit
+            </a>
+            <a href="{{ url_for('study_groups.index') }}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Back
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header">Group Info</div>
+                <div class="card-body">
+                    <p><strong>Group Code:</strong> {{ group.group_code }}</p>
+                    <p><strong>Course:</strong> {{ group.course }}</p>
+                    <p><strong>Semester:</strong> {{ group.semester }}</p>
+                    <p><strong>Max Members:</strong> {{ group.max_members }}</p>
+                    <p><strong>Current Members:</strong> {{ group.member_count }}</p>
+                    <p><strong>Status:</strong> 
+                        <span class="badge bg-{{ 'success' if group.is_active else 'secondary' }}">
+                            {{ 'Active' if group.is_active else 'Inactive' }}
+                        </span>
+                    </p>
+                    {% if group.subject %}
+                    <p><strong>Subject:</strong> {{ group.subject.name }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span>Class Representative</span>
+                    <button class="btn btn-sm btn-primary" onclick="showSetClassRepModal()">Set</button>
+                </div>
+                <div class="card-body">
+                    {% if group.class_rep %}
+                    <div class="text-center">
+                        <i class="fas fa-user-circle fa-3x text-primary mb-2"></i>
+                        <h5>{{ group.class_rep.full_name }}</h5>
+                        <p class="text-muted">{{ group.class_rep.student_id }}</p>
+                        <button class="btn btn-sm btn-danger" onclick="removeClassRep()">Remove</button>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center">No Class Representative assigned</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-4">
+            <div class="card shadow">
+                <div class="card-header">Description</div>
+                <div class="card-body">
+                    {% if group.description %}
+                    <p>{{ group.description }}</p>
+                    {% else %}
+                    <p class="text-muted">No description provided</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <span>Members ({{ group.members.count() }})</span>
+            <button class="btn btn-sm btn-primary" onclick="showAddMemberModal()">
+                <i class="fas fa-plus me-1"></i>Add Member
+            </button>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for member in group.members %}
+                        <tr>
+                            <td>{{ member.student.full_name }} ({{ member.student.student_id }})</td>
+                            <td>
+                                <span class="badge bg-{{ 'primary' if member.role == 'leader' else 'info' if member.role == 'participant' else 'secondary' }}">
+                                    {{ member.role }}
+                                </span>
+                            </td>
+                            <td>{{ member.joined_at.strftime('%Y-%m-%d') if member.joined_at }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if member.is_active else 'secondary' }}">
+                                    {{ 'Active' if member.is_active else 'Inactive' }}
+                                </span>
+                            </td>
+                            <td>
+                                <button class="btn btn-sm btn-{{ 'warning' if member.is_active else 'success' }}" onclick="toggleMember({{ member.id }})">
+                                    {{ 'Deactivate' if member.is_active else 'Activate' }}
+                                </button>
+                                <button class="btn btn-sm btn-danger" onclick="removeMember({{ member.id }})">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if not group.members.count() %}
+                <p class="text-muted text-center">No members yet</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function showAddMemberModal() {
+    const studentId = prompt('Enter Student ID to add:');
+    if (studentId) {
+        fetch('{{ url_for("study_groups.add_member", group_id=group.id) }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_id: parseInt(studentId) })
+        })
+        .then(r => r.json())
+        .then(d => {
+            if (d.member) location.reload();
+            else alert(d.error || 'Error');
+        });
+    }
+}
+
+function removeMember(memberId) {
+    if (confirm('Remove this member?')) {
+        fetch(`/study-groups/api/groups/{{ group.id }}/members/${memberId}`, { method: 'DELETE' })
+        .then(r => r.json()).then(d => { if (d.message) location.reload(); });
+    }
+}
+
+function toggleMember(memberId) {
+    fetch(`/study-groups/api/groups/{{ group.id }}/members/${memberId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+    }).then(r => r.json()).then(d => { if (d.member) location.reload(); });
+}
+
+function showSetClassRepModal() {
+    const studentId = prompt('Enter Student ID to set as Class Representative:');
+    if (studentId) {
+        fetch('{{ url_for("study_groups.set_class_rep", group_id=group.id) }}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ student_id: parseInt(studentId) })
+        })
+        .then(r => r.json()).then(d => { if (d.group) location.reload(); else alert(d.error); });
+    }
+}
+
+function removeClassRep() {
+    if (confirm('Remove Class Representative?')) {
+        fetch('{{ url_for("study_groups.remove_class_rep", group_id=group.id) }}', { method: 'DELETE' })
+        .then(r => r.json()).then(d => { if (d.message) location.reload(); });
+    }
+}
+</script>
+{% endblock %}

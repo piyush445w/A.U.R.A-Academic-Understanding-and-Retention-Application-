@@ -1,0 +1,96 @@
+{% extends "base.html" %}
+
+{% block title %}Session Groups - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Session Groups</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Session Groups</h1>
+        <a href="{{ url_for('study_groups.create_session_page') }}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create Session
+        </a>
+    </div>
+
+    <div class="row">
+        {% for session in sessions %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <span class="fw-bold">{{ session.session_name }}</span>
+                    <div>
+                        <span class="badge bg-{{ 'success' if session.is_active else 'secondary' }} me-1">
+                            {{ 'Active' if session.is_active else 'Inactive' }}
+                        </span>
+                        <span class="badge bg-{{ 'info' if session.is_completed else 'warning' }}">
+                            {{ 'Completed' if session.is_completed else 'In Progress' }}
+                        </span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <p class="mb-2">
+                        <i class="fas fa-calendar me-1"></i>{{ session.session_date.strftime('%Y-%m-%d') if session.session_date }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Course:</strong> {{ session.course }} - Semester {{ session.semester }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Groups:</strong> {{ session.groups.count() }}/{{ session.group_count }}
+                    </p>
+                    <p class="mb-2">
+                        <strong>Students:</strong> {{ session.total_students }}
+                    </p>
+                    <div class="progress mb-2" style="height: 8px;">
+                        <div class="progress-bar" role="progressbar" style="width: {{ session.completion_percentage }}%">
+                        </div>
+                    </div>
+                    <small class="text-muted">{{ session.completion_percentage }}% complete</small>
+                </div>
+                <div class="card-footer">
+                    {% if not session.groups.count() %}
+                    <button class="btn btn-sm btn-success" onclick="generateGroups({{ session.id }})">
+                        <i class="fas fa-random me-1"></i>Generate Groups
+                    </button>
+                    {% endif %}
+                    <a href="/study-groups/sessions/{{ session.id }}" class="btn btn-sm btn-info">
+                        <i class="fas fa-eye me-1"></i>View
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if not sessions %}
+    <div class="text-center py-5">
+        <i class="fas fa-calendar-week fa-4x text-muted mb-3"></i>
+        <h4 class="text-muted">No Sessions</h4>
+        <p class="text-muted">Create your first session to generate groups.</p>
+        <a href="{{ url_for('study_groups.create_session_page') }}" class="btn btn-primary">Create Session</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function generateGroups(sessionId) {
+    if (confirm('This will automatically generate groups for all students. Continue?')) {
+        fetch(`/study-groups/api/sessions/${sessionId}/generate-groups`, { method: 'POST' })
+        .then(r => r.json())
+        .then(d => {
+            if (d.message) {
+                alert(d.message);
+                location.reload();
+            } else {
+                alert(d.error || 'Error generating groups');
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

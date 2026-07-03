@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+
+{% block title %}Login - A.U.R.A{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-xl-10 col-lg-12 col-md-9">
+            <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-lg-6 d-none d-lg-block bg-login-image">
+                                <div class="bg-primary h-100 d-flex align-items-center justify-content-center">
+                                <div class="text-center text-white p-5">
+                                    <i class="fas fa-graduation-cap fa-5x mb-4"></i>
+                                    <h3 class="fw-bold">A.U.R.A</h3>
+                                    <p class="opacity-75">Academic & Retention Application</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-6">
+                            <div class="p-5">
+                                <div class="text-center">
+                                    <h1 class="h4 text-gray-900 mb-4">Welcome Back!</h1>
+                                </div>
+                                
+                                <form class="user" method="POST" action="{{ url_for('auth.login') }}" id="loginForm">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <div class="form-group mb-3">
+                                        <label for="username" class="form-label">Username</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                            <input type="text" class="form-control" id="username" name="username" 
+                                                   placeholder="Enter your username" required>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group mb-3">
+                                        <label for="password" class="form-label">Password</label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                            <input type="password" class="form-control" id="password" name="password" 
+                                                   placeholder="Enter your password" required>
+                                            <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="remember" name="remember">
+                                            <label class="form-check-label" for="remember">
+                                                Remember Me
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary btn-user btn-block w-100 mb-3">
+                                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                                    </button>
+                                    
+                                    <hr>
+                                    
+                                    <div class="text-center">
+                                        <a class="small" href="#">Forgot Password?</a>
+                                    </div>
+                                </form>
+                                
+                                <hr>
+                                
+                                <div class="text-center">
+                                    <span class="small">Don't have an account?</span>
+                                    <a class="small ms-1" href="{{ url_for('auth.register_page') }}">Create an Account</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const password = document.getElementById('password');
+        const icon = this.querySelector('i');
+        
+        if (password.type === 'password') {
+            password.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            password.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+    
+    // Form validation
+    document.getElementById('loginForm').addEventListener('submit', function(e) {
+        const username = document.getElementById('username').value.trim();
+        const password = document.getElementById('password').value;
+        
+        if (!username || !password) {
+            e.preventDefault();
+            alert('Please fill in all fields');
+            return false;
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

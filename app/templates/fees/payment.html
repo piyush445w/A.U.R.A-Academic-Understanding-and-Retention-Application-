@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block title %}Record Payment - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="#">Fees</a></li>
+<li class="breadcrumb-item active">Record Payment</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-money-bill me-2"></i>Record Payment
+        </h1>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Payment Details</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="#">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Fee Record <span class="text-danger">*</span></label>
+                                <select class="form-select" required>
+                                    <option value="">Select Fee Record</option>
+                                    {% for fee in fees %}
+                                    <option value="{{ fee.id }}">
+                                        {{ fee.student.student_id if fee.student else 'N/A' }} - 
+                                        {{ fee.fee_type }} - ${{ fee.amount }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Payment Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Amount Paid <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <span class="input-group-text">$</span>
+                                    <input type="number" class="form-control" required min="0" step="0.01">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Payment Method <span class="text-danger">*</span></label>
+                                <select class="form-select" required>
+                                    <option value="">Select Method</option>
+                                    <option value="Cash">Cash</option>
+                                    <option value="Card">Card</option>
+                                    <option value="Bank Transfer">Bank Transfer</option>
+                                    <option value="Online">Online Payment</option>
+                                </select>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Transaction Reference</label>
+                                <input type="text" class="form-control" placeholder="Transaction ID or Reference Number">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes</label>
+                                <textarea class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Record Payment</button>
+                            <a href="#" class="btn btn-secondary ms-2">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

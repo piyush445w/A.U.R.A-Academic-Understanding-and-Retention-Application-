@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Register - A.U.R.A{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center align-items-center min-vh-100">
+        <div class="col-xl-10 col-lg-12 col-md-9">
+            <div class="card o-hidden border-0 shadow-lg my-5">
+                <div class="card-body p-0">
+                    <div class="row">
+                        <div class="col-lg-5 d-none d-lg-block bg-register-image">
+                            <div class="bg-success h-100 d-flex align-items-center justify-content-center">
+                                <div class="text-center text-white p-5">
+                                    <i class="fas fa-user-plus fa-5x mb-4"></i>
+                                    <h3 class="fw-bold">Join Us Today</h3>
+                                    <p class="opacity-75">Create your account to access the system</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-7">
+                            <div class="p-5">
+                                <div class="text-center">
+                                    <h1 class="h4 text-gray-900 mb-4">Create an Account!</h1>
+                                </div>
+                                
+                                <form class="user" method="POST" action="{{ url_for('auth.register') }}" id="registerForm">
+                                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                                    <input type="text" class="form-control" id="username" name="username" 
+                                                           placeholder="Choose a username" required minlength="3" maxlength="50">
+                                                </div>
+                                                <div class="form-text">Username must be 3-50 characters</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-envelope"></i></span>
+                                                    <input type="email" class="form-control" id="email" name="email" 
+                                                           placeholder="Enter your email" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="password" class="form-label">Password <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                    <input type="password" class="form-control" id="password" name="password" 
+                                                           placeholder="Create a password" required minlength="6">
+                                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                                        <i class="fas fa-eye"></i>
+                                                    </button>
+                                                </div>
+                                                <div class="form-text">Password must be at least 6 characters</div>
+                                            </div>
+                                        </div>
+                                        
+                                        <div class="col-md-6">
+                                            <div class="form-group mb-3">
+                                                <label for="confirm_password" class="form-label">Confirm Password <span class="text-danger">*</span></label>
+                                                <div class="input-group">
+                                                    <span class="input-group-text"><i class="fas fa-lock"></i></span>
+                                                    <input type="password" class="form-control" id="confirm_password" name="confirm_password" 
+                                                           placeholder="Confirm your password" required>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group mb-3">
+                                        <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                                        <div class="input-group">
+                                            <span class="input-group-text"><i class="fas fa-user-tag"></i></span>
+                                            <select class="form-select" id="role" name="role" required>
+                                                <option value="">Select your role</option>
+                                                <option value="student">Student</option>
+                                                <option value="teacher">Teacher</option>
+                                                <option value="admin">Administrator</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="form-group mb-3">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" id="terms" name="terms" required>
+                                            <label class="form-check-label" for="terms">
+                                                I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a> 
+                                                and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    
+                                    <button type="submit" class="btn btn-primary btn-user btn-block w-100 mb-3">
+                                        <i class="fas fa-user-plus me-2"></i>Create Account
+                                    </button>
+                                </form>
+                                
+                                <hr>
+                                
+                                <div class="text-center">
+                                    <span class="small">Already have an account?</span>
+                                    <a class="small ms-1" href="{{ url_for('auth.login_page') }}">Login here</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Terms Modal -->
+<div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="termsModalLabel">Terms of Service</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>1. Acceptance of Terms</h6>
+                <p>By accessing and using the A.U.R.A, you accept and agree to be bound by these terms.</p>
+                
+                <h6>2. Use of Service</h6>
+                <p>The system is designed for educational institutions to monitor and support student success. Users must provide accurate information and maintain the confidentiality of their account credentials.</p>
+                
+                <h6>3. Data Privacy</h6>
+                <p>We are committed to protecting student data. All information is handled in accordance with applicable privacy laws and regulations.</p>
+                
+                <h6>4. User Responsibilities</h6>
+                <p>Users are responsible for maintaining the accuracy of data entered into the system and for using the system in accordance with institutional policies.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Privacy Modal -->
+<div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <h6>Information We Collect</h6>
+                <p>We collect information necessary to provide the student risk monitoring service, including academic records, attendance data, and financial information.</p>
+                
+                <h6>How We Use Information</h6>
+                <p>Information is used to identify at-risk students, provide early interventions, and improve educational outcomes.</p>
+                
+                <h6>Data Security</h6>
+                <p>We implement industry-standard security measures to protect sensitive student data from unauthorized access or disclosure.</p>
+                
+                <h6>Your Rights</h6>
+                <p>Users have the right to access, correct, or request deletion of their personal data in accordance with applicable laws.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-bs-dismiss="modal">I Understand</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Toggle password visibility
+    document.getElementById('togglePassword').addEventListener('click', function() {
+        const password = document.getElementById('password');
+        const icon = this.querySelector('i');
+        
+        if (password.type === 'password') {
+            password.type = 'text';
+            icon.classList.remove('fa-eye');
+            icon.classList.add('fa-eye-slash');
+        } else {
+            password.type = 'password';
+            icon.classList.remove('fa-eye-slash');
+            icon.classList.add('fa-eye');
+        }
+    });
+    
+    // Form validation
+    document.getElementById('registerForm').addEventListener('submit', function(e) {
+        const password = document.getElementById('password').value;
+        const confirmPassword = document.getElementById('confirm_password').value;
+        
+        if (password !== confirmPassword) {
+            e.preventDefault();
+            alert('Passwords do not match!');
+            return false;
+        }
+        
+        if (password.length < 6) {
+            e.preventDefault();
+            alert('Password must be at least 6 characters long');
+            return false;
+        }
+    });
+    
+    // Real-time password match validation
+    document.getElementById('confirm_password').addEventListener('input', function() {
+        const password = document.getElementById('password').value;
+        const confirmPassword = this.value;
+        
+        if (password !== confirmPassword) {
+            this.setCustomValidity('Passwords do not match');
+        } else {
+            this.setCustomValidity('');
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %}

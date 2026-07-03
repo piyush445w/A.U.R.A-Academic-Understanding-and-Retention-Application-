@@ -1,0 +1,262 @@
+{% extends "base.html" %}
+
+{% block title %}ML Predictions Dashboard - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">ML Predictions</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-brain me-2"></i>ML Predictions Dashboard
+        </h1>
+        <button class="btn btn-sm btn-primary shadow-sm" onclick="trainModel()">
+            <i class="fas fa-cogs me-1"></i>Train Model
+        </button>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card success h-100">
+                <div class="card-body">
+                    <div class="stat-label text-success">Low Risk</div>
+                    <div class="stat-value">{{ stats.low_risk if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning h-100">
+                <div class="card-body">
+                    <div class="stat-label text-warning">Medium Risk</div>
+                    <div class="stat-value">{{ stats.medium_risk if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card danger h-100">
+                <div class="card-body">
+                    <div class="stat-label text-danger">High Risk</div>
+                    <div class="stat-value">{{ stats.high_risk if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card h-100" style="background: linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%); border: none;">
+                <div class="card-body">
+                    <div class="stat-label text-white">Critical Risk</div>
+                    <div class="stat-value text-white font-weight-bold">{{ stats.critical_risk if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-8 col-lg-7">
+            <div class="card shadow mb-4 h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Risk Distribution</h6> 
+                </div>
+                <div class="card-body">
+                    <canvas id="riskChart" height="100px"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4 col-lg-5">
+            <div class="card shadow mb-4 h-100">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Model Performance</h6>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <strong>Accuracy:</strong> {{ model['accuracy'] if model else 0 }}%
+                    </div>
+                    <div class="mb-3">
+                        <strong>Precision:</strong> {{ model['precision'] if model else 0 }}%
+                    </div>
+                    <div class="mb-3">
+                        <strong>Recall:</strong> {{ model['recall'] if model else 0 }}%
+                    </div>
+                    <div class="mb-3">
+                        <strong>F1 Score:</strong> {{ model['f1_score'] if model else 0 }}%
+                    </div>
+                    <div class="mb-3">
+                        <strong>Last Trained:</strong> {{ model['last_trained'] if model and model['last_trained'] else 'N/A' }}
+            </div>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-12">
+            <div class="card shadow mb-4">
+                <div class="card-body py-3">
+                    <div class="row text-center">
+                        <div class="col-md-3">
+                            <span class="text-muted">Model Accuracy</span>
+                            <div class="h4 text-primary">{{ stats.accuracy if stats else 0 }}%</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">High Risk Students</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Course</th>
+                            <th>Risk Level</th>
+                            <th>Risk Score</th>
+                            <th>Type</th>
+                            <th>Flagged</th>
+                            <th>Factors</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in high_risk_students %}
+                        <tr>
+                            <td>{{ student.student_id }}</td>
+                            <td>{{ student.full_name }}</td>
+                            <td>{{ student.course }}</td>
+                            <td>
+                                {% if student.risk_level == 'Critical' %}
+                                <span class="badge" style="background: #9b59b6;">Critical</span>
+                                {% else %}
+                                <span class="badge bg-danger">High</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if student.risk_level == 'Critical' %}
+                                <span class="badge" style="background: #9b59b6;">{{ student.risk_score }}%</span>
+                                {% else %}
+                                <span class="badge bg-danger">{{ student.risk_score }}%</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if student.is_manual %}
+                                <span class="text-muted">(Manual Override)</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if student.flag_for_review %}
+                                <span class="badge bg-warning text-dark"><i class="fas fa-flag"></i> Review</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ student.factors }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-eye"></i></a>
+                                <a href="#" class="btn btn-sm btn-outline-success"><i class="fas fa-bell"></i></a>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="9" class="text-center text-muted py-4">No high risk students found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-warning">Students Requiring Review</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Course</th>
+                            <th>Review Note</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in flagged_students %}
+                        <tr>
+                            <td>{{ student.student_id }}</td>
+                            <td>{{ student.full_name }}</td>
+                            <td>{{ student.course }}</td>
+                            <td>{{ student.review_note }}</td>
+                            <td>
+                                <button class="btn btn-sm btn-outline-success" onclick="clearFlag('{{ student.student_id }}')">
+                                    <i class="fas fa-check"></i> Clear Flag
+                                </button>
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">No students flagged for review.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+      
+    function trainModel() {
+        if (confirm('Train the ML model with current data? This may take a few minutes.')) {
+            fetch('{{ url_for("predictions.train_model") }}', { 
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}' 
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || 'Model training started');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error training model');
+            });
+        }
+    }
+    
+    function clearFlag(studentId) {
+        if (confirm('Clear the review flag for this student?')) {
+            fetch(`/predictions/${studentId}/flag`, { 
+                method: 'DELETE',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}' 
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert('Review flag cleared successfully');
+                location.reload();
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error clearing flag');
+            });
+        }
+    }
+</script>
+{% endblock %}

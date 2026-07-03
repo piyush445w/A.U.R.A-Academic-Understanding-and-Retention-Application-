@@ -1,0 +1,143 @@
+{% extends "base.html" %}
+
+{% block title %}Financial Reports - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Financial Reports</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-money-bill-wave me-2"></i>Financial Reports
+        </h1>
+        <div>
+            <a href="#" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-csv me-1"></i>Export CSV</a>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Report Filters</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" action="#">
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <label class="form-label">Course</label>
+                        <select class="form-select">
+                            <option value="">All Courses</option>
+                            {% for course in courses %}
+                            <option value="{{ course }}">{{ course }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Fee Type</label>
+                        <select class="form-select">
+                            <option value="">All Types</option>
+                            <option value="Tuition">Tuition</option>
+                            <option value="Library">Library</option>
+                            <option value="Laboratory">Laboratory</option>
+                            <option value="Examination">Examination</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Status</label>
+                        <select class="form-select">
+                            <option value="">All Status</option>
+                            <option value="Paid">Paid</option>
+                            <option value="Pending">Pending</option>
+                            <option value="Overdue">Overdue</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date Range</label>
+                        <input type="month" class="form-control">
+                    </div>
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">Generate Report</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card success h-100">
+                <div class="card-body">
+                    <div class="stat-label text-success">Total Collected</div>
+                    <div class="stat-value">${{ stats.collected if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning h-100">
+                <div class="card-body">
+                    <div class="stat-label text-warning">Pending</div>
+                    <div class="stat-value">${{ stats.pending if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card danger h-100">
+                <div class="card-body">
+                    <div class="stat-label text-danger">Overdue</div>
+                    <div class="stat-value">${{ stats.overdue if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card primary h-100">
+                <div class="card-body">
+                    <div class="stat-label text-primary">Collection Rate</div>
+                    <div class="stat-value">{{ stats.collection_rate if stats else 0 }}%</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Financial Data</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Student ID</th>
+                            <th>Name</th>
+                            <th>Fee Type</th>
+                            <th>Amount</th>
+                            <th>Due Date</th>
+                            <th>Paid Date</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for fee in financial_data %}
+                        <tr>
+                            <td>{{ fee.student.student_id if fee.student else 'N/A' }}</td>
+                            <td>{{ fee.student.full_name if fee.student else 'N/A' }}</td>
+                            <td>{{ fee.fee_type }}</td>
+                            <td>${{ fee.amount }}</td>
+                            <td>{{ fee.due_date.strftime('%Y-%m-%d') if fee.due_date else 'N/A' }}</td>
+                            <td>{{ fee.paid_date.strftime('%Y-%m-%d') if fee.paid_date else '-' }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if fee.status == 'Paid' else 'warning' if fee.status == 'Pending' else 'danger' }}">
+                                    {{ fee.status }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Issue Book - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('admin.library_page') }}">Library</a></li>
+<li class="breadcrumb-item active">Issue Book</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-book-open me-2"></i>Issue Book
+        </h1>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Issue Book to Student</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.issue_book') }}">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Student <span class="text-danger">*</span></label>
+                                <select class="form-select" name="student_id" required>
+                                    <option value="">Select Student</option>
+                                    {% for student in students %}
+                                    <option value="{{ student.id }}">{{ student.student_id }} - {{ student.full_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Book <span class="text-danger">*</span></label>
+                                <select class="form-select" name="book_id" required>
+                                    <option value="">Select Book</option>
+                                    {% for book in books %}
+                                    <option value="{{ book.id }}">{{ book.title }} ({{ book.available_copies }} available)</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Issue Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Due Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" required>
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Notes</label>
+                                <textarea class="form-control" rows="2"></textarea>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">Issue Book</button>
+                            <a href="#" class="btn btn-secondary ms-2">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

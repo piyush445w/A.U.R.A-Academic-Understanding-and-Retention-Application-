@@ -1,0 +1,109 @@
+{% extends "base.html" %}
+
+{% block title %}New Support Plan - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('counseling.dashboard') }}">Counseling & Support</a></li>
+<li class="breadcrumb-item active">New Support Plan</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-clipboard-list me-2"></i>New Support Plan
+        </h1>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('counseling.new_plan') }}">
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Student *</label>
+                        <select name="student_id" class="form-select" required>
+                            <option value="">Select Student</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">
+                                {{ student.full_name }} ({{ student.student_id }})
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Plan Type</label>
+                        <select name="plan_type" class="form-select">
+                            <option value="General" selected>General</option>
+                            <option value="Academic">Academic</option>
+                            <option value="Behavioral">Behavioral</option>
+                            <option value="Financial">Financial</option>
+                            <option value="Personal">Personal</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="Draft" selected>Draft</option>
+                            <option value="Active">Active</option>
+                            <option value="Completed">Completed</option>
+                            <option value="Cancelled">Cancelled</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Title *</label>
+                    <input type="text" name="title" class="form-control" required placeholder="Plan title...">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea name="description" class="form-control" rows="2" placeholder="Brief description of the support plan..."></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Goals</label>
+                    <textarea name="goals" class="form-control" rows="3" placeholder="What goals should this plan achieve?"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Strategies</label>
+                    <textarea name="strategies" class="form-control" rows="3" placeholder="What strategies will be used?"></textarea>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Resources Needed</label>
+                    <textarea name="resources_needed" class="form-control" rows="2" placeholder="What resources are required?"></textarea>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Start Date *</label>
+                        <input type="date" name="start_date" class="form-control" required>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Target End Date</label>
+                        <input type="date" name="target_end_date" class="form-control">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label class="form-label">Review Frequency</label>
+                        <select name="review_frequency" class="form-select">
+                            <option value="">Select frequency</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Bi-weekly">Bi-weekly</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="Quarterly">Quarterly</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="text-end">
+                    <a href="{{ url_for('counseling.dashboard') }}" class="btn btn-secondary me-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create Support Plan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

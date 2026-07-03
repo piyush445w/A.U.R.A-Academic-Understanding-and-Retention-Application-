@@ -1,0 +1,461 @@
+{% extends "base.html" %}
+
+{% block title %}Student Profile - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('admin.get_students') }}">Students</a></li>
+<li class="breadcrumb-item active">{{ student.full_name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-graduate me-2"></i>Student Profile
+        </h1>
+        <div>
+            <a href="#" class="btn btn-sm btn-outline-primary shadow-sm me-2">
+                <i class="fas fa-edit me-1"></i>Edit
+            </a>
+            <a href="{{ url_for('admin.get_students') }}" class="btn btn-sm btn-outline-secondary shadow-sm">
+                <i class="fas fa-arrow-left me-1"></i>Back to List
+            </a>
+        </div>
+    </div>
+    
+    <!-- Student Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-auto">
+                            <div class="avatar avatar-lg">
+                                <div class="avatar-initial bg-primary rounded-circle" style="width: 100px; height: 100px; font-size: 2.5rem;">
+                                    {{ student.first_name[0] }}{{ student.last_name[0] }}
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <h3 class="mb-1">{{ student.full_name }}</h3>
+                            <p class="text-muted mb-2">{{ student.student_id }} | {{ student.course }} - Semester {{ student.semester }}</p>
+                            <div class="d-flex flex-wrap gap-2">
+                                <span class="badge bg-{{ 'danger' if student.risk_level == 'High' else 'warning' if student.risk_level == 'Medium' else 'success' }} fs-6">
+                                    {{ student.risk_level if student.risk_level else 'Low' }} Risk
+                                </span>
+                                <span class="badge bg-{{ 'success' if student.user.is_active else 'secondary' }} fs-6">
+                                    {{ 'Active' if student.user.is_active else 'Inactive' }}
+                                </span>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="text-center">
+                                <div class="display-6 fw-bold text-primary">{{ student.attendance_percentage }}%</div>
+                                <div class="small text-muted">Attendance</div>
+                            </div>
+                        </div>
+                        <div class="col-auto">
+                            <div class="text-center">
+                                <div class="display-6 fw-bold text-{{ 'danger' if student.risk_level == 'High' else 'warning' if student.risk_level == 'Medium' else 'success' }}">
+                                    {{ student.risk_score if student.risk_score else 0 }}%
+                                </div>
+                                <div class="small text-muted">Risk Score</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tabs -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <ul class="nav nav-tabs card-header-tabs" id="studentTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="personal-tab" data-bs-toggle="tab" data-bs-target="#personal" 
+                            type="button" role="tab" aria-controls="personal" aria-selected="true">
+                        <i class="fas fa-user me-2"></i>Personal Info
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="attendance-tab" data-bs-toggle="tab" data-bs-target="#attendance" 
+                            type="button" role="tab" aria-controls="attendance" aria-selected="false">
+                        <i class="fas fa-calendar-check me-2"></i>Attendance
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="academic-tab" data-bs-toggle="tab" data-bs-target="#academic" 
+                            type="button" role="tab" aria-controls="academic" aria-selected="false">
+                        <i class="fas fa-chart-line me-2"></i>Academic
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="fees-tab" data-bs-toggle="tab" data-bs-target="#fees" 
+                            type="button" role="tab" aria-controls="fees" aria-selected="false">
+                        <i class="fas fa-money-bill-wave me-2"></i>Fees
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="library-tab" data-bs-toggle="tab" data-bs-target="#library" 
+                            type="button" role="tab" aria-controls="library" aria-selected="false">
+                        <i class="fas fa-book me-2"></i>Library
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="complaints-tab" data-bs-toggle="tab" data-bs-target="#complaints" 
+                            type="button" role="tab" aria-controls="complaints" aria-selected="false">
+                        <i class="fas fa-exclamation-circle me-2"></i>Complaints
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="predictions-tab" data-bs-toggle="tab" data-bs-target="#predictions" 
+                            type="button" role="tab" aria-controls="predictions" aria-selected="false">
+                        <i class="fas fa-brain me-2"></i>Predictions
+                    </button>
+                </li>
+            </ul>
+        </div>
+        <div class="card-body">
+            <div class="tab-content" id="studentTabsContent">
+                <!-- Personal Info Tab -->
+                <div class="tab-pane fade show active" id="personal" role="tabpanel" aria-labelledby="personal-tab">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Personal Information</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Full Name:</th>
+                                    <td>{{ student.full_name }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Student ID:</th>
+                                    <td>{{ student.student_id }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Date of Birth:</th>
+                                    <td>{{ student.date_of_birth.strftime('%B %d, %Y') if student.date_of_birth else 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Age:</th>
+                                    <td>{{ student.age }} years</td>
+                                </tr>
+                                <tr>
+                                    <th>Gender:</th>
+                                    <td>{{ student.gender }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Phone:</th>
+                                    <td>{{ student.phone or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Address:</th>
+                                    <td>{{ student.address or 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="text-primary mb-3">Academic Information</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Course:</th>
+                                    <td>{{ student.course }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Semester:</th>
+                                    <td>{{ student.semester }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Admission Date:</th>
+                                    <td>{{ student.admission_date.strftime('%B %d, %Y') if student.admission_date else 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Email:</th>
+                                    <td>{{ student.user.email if student.user else 'N/A' }}</td>
+                                </tr>
+                            </table>
+                            
+                            <h6 class="text-primary mb-3 mt-4">Guardian Information</h6>
+                            <table class="table table-borderless">
+                                <tr>
+                                    <th width="40%">Guardian Name:</th>
+                                    <td>{{ student.guardian_name or 'N/A' }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Guardian Phone:</th>
+                                    <td>{{ student.guardian_phone or 'N/A' }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Attendance Tab -->
+                <div class="tab-pane fade" id="attendance" role="tabpanel" aria-labelledby="attendance-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-primary mb-0">Attendance History</h6>
+                        <a href="#" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Mark Attendance
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Status</th>
+                                    <th>Remarks</th>
+                                    <th>Marked By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if attendance_records %}
+                                    {% for record in attendance_records %}
+                                    <tr>
+                                        <td>{{ record.date.strftime('%Y-%m-%d') if record.date else 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if record.status == 'Present' else 'danger' if record.status == 'Absent' else 'warning' }}">
+                                                {{ record.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ record.remarks or '-' }}</td>
+                                        <td>{{ record.marked_by_user.username if record.marked_by_user else 'N/A' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="4" class="text-center text-muted">No attendance records found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Academic Tab -->
+                <div class="tab-pane fade" id="academic" role="tabpanel" aria-labelledby="academic-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-primary mb-0">Academic Performance</h6>
+                        <a href="#" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add Marks
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Exam Type</th>
+                                    <th>Marks</th>
+                                    <th>Percentage</th>
+                                    <th>Date</th>
+                                    <th>Graded By</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if marks_records %}
+                                    {% for mark in marks_records %}
+                                    <tr>
+                                        <td>{{ mark.subject.name if mark.subject else 'N/A' }}</td>
+                                        <td>{{ mark.exam_type }}</td>
+                                        <td>{{ mark.marks_obtained }}/{{ mark.max_marks }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if (mark.marks_obtained/mark.max_marks*100) >= 75 else 'warning' if (mark.marks_obtained/mark.max_marks*100) >= 50 else 'danger' }}">
+                                                {{ "%.1f"|format(mark.marks_obtained/mark.max_marks*100) }}%
+                                            </span>
+                                        </td>
+                                        <td>{{ mark.exam_date.strftime('%Y-%m-%d') if mark.exam_date else 'N/A' }}</td>
+                                        <td>{{ mark.graded_by_user.username if mark.graded_by_user else 'N/A' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="6" class="text-center text-muted">No marks records found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Fees Tab -->
+                <div class="tab-pane fade" id="fees" role="tabpanel" aria-labelledby="fees-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-primary mb-0">Fee Records</h6>
+                        <a href="#" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add Fee
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Fee Type</th>
+                                    <th>Amount</th>
+                                    <th>Due Date</th>
+                                    <th>Status</th>
+                                    <th>Paid Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if fee_records %}
+                                    {% for fee in fee_records %}
+                                    <tr>
+                                        <td>{{ fee.fee_type }}</td>
+                                        <td>${{ fee.amount }}</td>
+                                        <td>{{ fee.due_date.strftime('%Y-%m-%d') if fee.due_date else 'N/A' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if fee.status == 'Paid' else 'warning' if fee.status == 'Pending' else 'danger' }}">
+                                                {{ fee.status }}
+                                            </span>
+                                        </td>
+                                        <td>{{ fee.paid_date.strftime('%Y-%m-%d') if fee.paid_date else '-' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No fee records found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Library Tab -->
+                <div class="tab-pane fade" id="library" role="tabpanel" aria-labelledby="library-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-primary mb-0">Library Transactions</h6>
+                        <a href="#" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Issue Book
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Book</th>
+                                    <th>Issue Date</th>
+                                    <th>Due Date</th>
+                                    <th>Return Date</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if library_transactions %}
+                                    {% for transaction in library_transactions %}
+                                    <tr>
+                                        <td>{{ transaction.book.title if transaction.book else 'N/A' }}</td>
+                                        <td>{{ transaction.issue_date.strftime('%Y-%m-%d') if transaction.issue_date else 'N/A' }}</td>
+                                        <td>{{ transaction.due_date.strftime('%Y-%m-%d') if transaction.due_date else 'N/A' }}</td>
+                                        <td>{{ transaction.return_date.strftime('%Y-%m-%d') if transaction.return_date else '-' }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if transaction.status == 'Returned' else 'warning' if transaction.status == 'Issued' else 'danger' }}">
+                                                {{ transaction.status }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No library transactions found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Complaints Tab -->
+                <div class="tab-pane fade" id="complaints" role="tabpanel" aria-labelledby="complaints-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-primary mb-0">Complaints</h6>
+                        <a href="#" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus me-1"></i>Add Complaint
+                        </a>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Subject</th>
+                                    <th>Category</th>
+                                    <th>Status</th>
+                                    <th>Priority</th>
+                                    <th>Created</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% if complaints %}
+                                    {% for complaint in complaints %}
+                                    <tr>
+                                        <td>{{ complaint.subject }}</td>
+                                        <td>{{ complaint.category }}</td>
+                                        <td>
+                                            <span class="badge bg-{{ 'success' if complaint.status == 'Resolved' else 'warning' if complaint.status == 'In Progress' else 'info' }}">
+                                                {{ complaint.status }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span class="badge bg-{{ 'danger' if complaint.priority == 'High' else 'warning' if complaint.priority == 'Medium' else 'success' }}">
+                                                {{ complaint.priority }}
+                                            </span>
+                                        </td>
+                                        <td>{{ complaint.created_at.strftime('%Y-%m-%d') if complaint.created_at else 'N/A' }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                {% else %}
+                                    <tr>
+                                        <td colspan="5" class="text-center text-muted">No complaints found</td>
+                                    </tr>
+                                {% endif %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <!-- Predictions Tab -->
+                <div class="tab-pane fade" id="predictions" role="tabpanel" aria-labelledby="predictions-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h6 class="text-primary mb-0">Risk Predictions</h6>
+                        <a href="#" class="btn btn-sm btn-primary">
+                            <i class="fas fa-sync me-1"></i>Refresh
+                        </a>
+                    </div>
+                    {% if predictions %}
+                        <div class="row">
+                            {% for prediction in predictions %}
+                            <div class="col-md-6 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-center mb-2">
+                                            <h6 class="mb-0">{{ prediction.prediction_date.strftime('%Y-%m-%d') if prediction.prediction_date else 'N/A' }}</h6>
+                                            <span class="badge bg-{{ 'danger' if prediction.risk_level == 'High' else 'warning' if prediction.risk_level == 'Medium' else 'success' }}">
+                                                {{ prediction.risk_level }}
+                                            </span>
+                                        </div>
+                                        <div class="mb-2">
+                                            <strong>Risk Score:</strong> {{ prediction.risk_score }}%
+                                        </div>
+                                        <div class="small text-muted">
+                                            <strong>Factors:</strong> {{ prediction.factors or 'N/A' }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center text-muted py-4">
+                            <i class="fas fa-brain fa-3x mb-3"></i>
+                            <p>No predictions available</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

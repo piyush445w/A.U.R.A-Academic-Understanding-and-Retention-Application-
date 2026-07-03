@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Academic Report - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Academic Report</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-chart-bar me-2"></i>Academic Performance Report
+        </h1>
+        <div>
+            <a href="{{ url_for('admin.export_academic_excel') }}" class="btn btn-sm btn-outline-primary"><i class="fas fa-file-excel me-1"></i>Export CSV</a>
+        </div>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card primary h-100">
+                <div class="card-body">
+                    <div class="stat-label text-primary">Average Score</div>
+                    <div class="stat-value">{{ stats.avg_score if stats else 0 }}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card success h-100">
+                <div class="card-body">
+                    <div class="stat-label text-success">Pass Rate</div>
+                    <div class="stat-value">{{ stats.pass_rate if stats else 0 }}%</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning h-100">
+                <div class="card-body">
+                    <div class="stat-label text-warning">At Risk</div>
+                    <div class="stat-value">{{ stats.at_risk if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card danger h-100">
+                <div class="card-body">
+                    <div class="stat-label text-danger">Failing</div>
+                    <div class="stat-value">{{ stats.failing if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Student Performance</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover table-sm">
+                    <thead>
+                        <tr>
+                            <th style="width: 100px;">Student ID</th>
+                            <th style="width: 180px;">Name</th>
+                            <th style="width: 100px;">Course</th>
+                            <th style="width: 200px;">Average Score</th>
+                            <th style="width: 140px;">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for student in students %}
+                        <tr>
+                            <td>{{ student.student_id }}</td>
+                            <td>{{ student.full_name }}</td>
+                            <td>{{ student.course }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <div class="progress flex-grow-1 me-2" style="height: 14px; min-width: 60px;">
+                                        <div class="progress-bar bg-{{ 'success' if student.avg_score >= 75 else 'warning' if student.avg_score >= 50 else 'danger' }}" 
+                                             style="width: {{ student.avg_score }}%">
+                                        </div>
+                                    </div>
+                                    <small class="text-muted">{{ student.avg_score }}%</small>
+                                </div>
+                            </td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if student.avg_score >= 75 else 'warning' if student.avg_score >= 50 else 'danger' }}">
+                                    {{ 'Excellent' if student.avg_score >= 75 else 'Average' if student.avg_score >= 50 else 'Needs Improvement' }}
+                                </span>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,18 @@
+{
+  "name": "A.U.R.A - Academic Understanding and Retention Application",
+  "short_name": "A.U.R.A",
+  "description": "Academic Understanding and Retention Application - Intelligent Student Risk Monitoring System",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f9fc",
+  "theme_color": "#4e73df",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTkyIiBoZWlnaHQ9IjE5MiIgdmlld0JveD0iMCAwIDE5MiAxOTIiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIxOTIiIGhlaWdodD0iMTkyIiBmaWxsPSIjNEU3M0RGIi8+CjxwYXRoIGQ9Ik0xMDAgMjBIMzIgQzIwLjY0MiAyMCAxMCAyMC42NDIgMTAgMzJWMTAwQzEwIDEwMS4zNSAxMC4zNTMgMTAyIDExIDEwMkMxMS42NDcgMTAyIDEyIDEwMS4zNSAxMiAxMDBWNDBDMTIgMzguNjQyIDEyLjM1MyAzNyA1MCAzN0gxMDBDMTAxLjM1IDM3IDEwMiAzNy4zNTMgMTAyIDM4VjEwMEMxMDIgMTAxLjM1IDEwMS42NSA1MiAxMDJDNTAgMTAyIDM4LjY0NyAxMDEuMzUgMzggMTAwVjMyQzM4IDIwLjY0MiAzNy4zNTMgMjAgMzYgMjBIMTAwWiIgZmlsbD0id2hpdGUiLz4KPHRleHQgeD0iOTYiIHk9IjEwNiIgZm9udC1mYW1pbHk9ImJvbGQiIGZvbnQtc2l6ZT0iMjQiIGZpbGw9IndoaXRlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIj5TUk1TPC90ZXh0Pgo8L3N2Zz4K",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "maskable any"
+    }
+  ]
+}

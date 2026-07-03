@@ -1,0 +1,281 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance by Class - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Mark Attendance by Class</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        <div id="attendanceToast" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body d-flex align-items-center">
+                <i class="toast-icon fas fa-check-circle me-2"></i>
+                <span class="toast-body-text"></span>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-users me-2"></i>Mark Attendance by Class
+        </h1>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-12">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-calendar-check me-2"></i>Select Class
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="course" class="form-label">Course <span class="text-danger">*</span></label>
+                            <select class="form-select" id="course" required>
+                                <option value="">Select Course</option>
+                                {% for course in courses %}
+                                <option value="{{ course }}">{{ course }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="semester" class="form-label">Semester <span class="text-danger">*</span></label>
+                            <select class="form-select" id="semester" required>
+                                <option value="">Select Semester</option>
+                                {% for i in range(1, 9) %}
+                                <option value="{{ i }}">Semester {{ i }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" id="date" required>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="button" class="btn btn-primary w-100" onclick="loadStudents()">
+                                <i class="fas fa-search me-1"></i>Load Students
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="studentsSection" style="display: none;">
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <h6 class="m-0 font-weight-bold text-primary">
+                    <i class="fas fa-list me-2"></i>Student Attendance List
+                </h6>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="studentsTable">
+                        <thead>
+                            <tr>
+                                <th style="width: 50px;">S.No</th>
+                                <th>Student ID</th>
+                                <th>Student Name</th>
+                                <th class="text-center">Status</th>
+                                <th>Remarks</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentsTableBody">
+                        </tbody>
+                    </table>
+                </div>
+                <div class="d-flex justify-content-between align-items-center mt-3">
+                    <div class="text-muted">
+                        <span id="studentCount">0</span> students loaded
+                    </div>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-success" onclick="markAllPresent()">
+                            <i class="fas fa-check me-1"></i>Mark All Present
+                        </button>
+                        <button type="button" class="btn btn-primary" onclick="submitAttendance()">
+                            <i class="fas fa-save me-1"></i>Submit Attendance
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-3">
+        <div class="col-lg-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Status Legend
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex gap-4">
+                        <div><span class="badge bg-success">Present</span> - Student attended</div>
+                        <div><span class="badge bg-danger">Absent</span> - Student did not attend</div>
+                        <div><span class="badge bg-warning text-dark">Late</span> - Student arrived late</div>
+                        <div><span class="badge bg-info">Excused</span> - Absence excused</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    let studentsData = [];
+    
+    document.getElementById('date').valueAsDate = new Date();
+    
+    function showToast(message, isSuccess = true) {
+        const toast = document.getElementById('attendanceToast');
+        if (!toast) {
+            alert(message);
+            return;
+        }
+        const toastBody = toast.querySelector('.toast-body');
+        const toastIcon = toast.querySelector('.toast-icon');
+        
+        if (toastBody) toastBody.textContent = message;
+        if (isSuccess) {
+            toast.classList.remove('bg-danger');
+            toast.classList.add('bg-success');
+            if (toastIcon) toastIcon.className = 'toast-icon fas fa-check-circle me-2';
+        } else {
+            toast.classList.remove('bg-success');
+            toast.classList.add('bg-danger');
+            if (toastIcon) toastIcon.className = 'toast-icon fas fa-exclamation-circle me-2';
+        }
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+    }
+    
+    function loadStudents() {
+        const course = document.getElementById('course').value;
+        const semester = document.getElementById('semester').value;
+        
+        if (!course || !semester) {
+            alert('Please select both course and semester');
+            return;
+        }
+        
+        fetch(`/admin/attendance/students?course=${encodeURIComponent(course)}&semester=${semester}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                studentsData = data.students;
+                renderStudentsTable();
+                document.getElementById('studentsSection').style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load students');
+            });
+    }
+    
+    function renderStudentsTable() {
+        const tbody = document.getElementById('studentsTableBody');
+        tbody.innerHTML = '';
+        
+        studentsData.forEach((student, index) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${student.student_id}</td>
+                <td>${student.name}</td>
+                <td class="text-center">
+                    <div class="btn-group" role="group">
+                        <input type="radio" class="btn-check" name="status_${student.id}" id="present_${student.id}" value="Present" autocomplete="off">
+                        <label class="btn btn-sm btn-outline-success" for="present_${student.id}">Present</label>
+                        
+                        <input type="radio" class="btn-check" name="status_${student.id}" id="absent_${student.id}" value="Absent" autocomplete="off" checked>
+                        <label class="btn btn-sm btn-outline-danger" for="absent_${student.id}">Absent</label>
+                        
+                        <input type="radio" class="btn-check" name="status_${student.id}" id="late_${student.id}" value="Late" autocomplete="off">
+                        <label class="btn btn-sm btn-outline-warning" for="late_${student.id}">Late</label>
+                        
+                        <input type="radio" class="btn-check" name="status_${student.id}" id="excused_${student.id}" value="Excused" autocomplete="off">
+                        <label class="btn btn-sm btn-outline-info" for="excused_${student.id}">Excused</label>
+                    </div>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" 
+                           id="remarks_${student.id}" 
+                           placeholder="Optional remarks">
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('studentCount').textContent = studentsData.length;
+    }
+    
+    function markAllPresent() {
+        studentsData.forEach(student => {
+            const presentRadio = document.getElementById(`present_${student.id}`);
+            if (presentRadio) {
+                presentRadio.checked = true;
+            }
+        });
+    }
+    
+    function submitAttendance() {
+        if (studentsData.length === 0) {
+            alert('No students to mark attendance for');
+            return;
+        }
+        
+        const course = document.getElementById('course').value;
+        const semester = document.getElementById('semester').value;
+        const date = document.getElementById('date').value;
+        
+        const attendance = {};
+        studentsData.forEach(student => {
+            const status = document.querySelector(`input[name="status_${student.id}"]:checked`).value;
+            const remarks = document.getElementById(`remarks_${student.id}`).value;
+            attendance[student.id] = status;
+            attendance[`remarks_${student.id}`] = remarks;
+        });
+        
+        fetch('/admin/attendance/bulk', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                course: course,
+                semester: parseInt(semester),
+                date: date,
+                attendance: attendance
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showToast('Error: ' + data.error, false);
+            } else {
+                showToast('Attendance successfully locked in for ' + data.marked + ' students!');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to submit attendance');
+        });
+    }
+</script>
+{% endblock %}
+{% endblock %}

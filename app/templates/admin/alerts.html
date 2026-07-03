@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+
+{% block title %}Alert Management - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Alert Management</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-bell me-2"></i>Alert Management
+        </h1>
+        <button type="button" class="btn btn-sm btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#createAlertModal">
+            <i class="fas fa-plus me-1"></i>Create Alert
+        </button>
+    </div>
+    
+    <div class="row g-4 mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card primary h-100">
+                <div class="card-body">
+                    <div class="stat-label text-primary">Total Alerts</div>
+                    <div class="stat-value">{{ stats.total if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card warning h-100">
+                <div class="card-body">
+                    <div class="stat-label text-warning">Unread</div>
+                    <div class="stat-value">{{ stats.unread if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card danger h-100">
+                <div class="card-body">
+                    <div class="stat-label text-danger">High Priority</div>
+                    <div class="stat-value">{{ stats.high_priority if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card stat-card success h-100">
+                <div class="card-body">
+                    <div class="stat-label text-success">Resolved</div>
+                    <div class="stat-value">{{ stats.resolved if stats else 0 }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card shadow mb-4">
+        <div class="card-header py-3 d-flex justify-content-between align-items-center">
+            <h6 class="m-0 font-weight-bold text-primary">All Alerts</h6>
+            <div>
+                <select class="form-select form-select-sm d-inline-block w-auto">
+                    <option value="">All Severity</option>
+                    <option value="High">High</option>
+                    <option value="Medium">Medium</option>
+                    <option value="Low">Low</option>
+                </select>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Student</th>
+                            <th>Type</th>
+                            <th>Severity</th>
+                            <th>Message</th>
+                            <th>Status</th>
+                            <th>Created</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for alert in alerts %}
+                        <tr class="{{ 'table-warning' if not alert.is_read else '' }}">
+                            <td>{{ alert.id }}</td>
+                            <td>{{ alert.student.full_name if alert.student else 'N/A' }}</td>
+                            <td>{{ alert.alert_type }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'danger' if alert.severity == 'High' else 'warning' if alert.severity == 'Medium' else 'success' }}">
+                                    {{ alert.severity }}
+                                </span>
+                            </td>
+                            <td>{{ alert.message[:50] }}{{ '...' if alert.message|length > 50 else '' }}</td>
+                            <td>
+                                <span class="badge bg-{{ 'success' if alert.is_resolved else 'warning' if alert.is_read else 'info' }}">
+                                    {{ 'Resolved' if alert.is_resolved else 'Read' if alert.is_read else 'Unread' }}
+                                </span>
+                            </td>
+                            <td>{{ alert.created_at.strftime('%Y-%m-%d') if alert.created_at else 'N/A' }}</td>
+                            <td>
+                                <a href="#" class="btn btn-sm btn-outline-primary me-1"><i class="fas fa-eye"></i></a>
+                                {% if not alert.is_resolved %}
+                                <button class="btn btn-sm btn-outline-success" onclick="resolveAlert({{ alert.id }})">
+                                    <i class="fas fa-check"></i>
+                                </button>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Create Alert Modal -->
+<div class="modal fade" id="createAlertModal" tabindex="-1" aria-labelledby="createAlertModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="createAlertModalLabel">Create New Alert</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="createAlertForm">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="alert_student_id" class="form-label">Student</label>
+                        <select class="form-select" id="alert_student_id" name="student_id" required>
+                            <option value="">Select Student</option>
+                            {% for student in students %}
+                            <option value="{{ student.id }}">{{ student.full_name }} ({{ student.student_id }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="alert_type" class="form-label">Alert Type</label>
+                        <select class="form-select" id="alert_type" name="alert_type" required>
+                            <option value="">Select Type</option>
+                            <option value="Academic">Academic</option>
+                            <option value="Attendance">Attendance</option>
+                            <option value="Behavioral">Behavioral</option>
+                            <option value="Financial">Financial</option>
+                            <option value="General">General</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="severity" class="form-label">Severity</label>
+                        <select class="form-select" id="severity" name="severity" required>
+                            <option value="Low">Low</option>
+                            <option value="Medium" selected>Medium</option>
+                            <option value="High">High</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="message" class="form-label">Message</label>
+                        <textarea class="form-control" id="message" name="message" rows="3" required></textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="suggestion" class="form-label">Suggestion (Optional)</label>
+                        <textarea class="form-control" id="suggestion" name="suggestion" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Alert</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    // Handle Create Alert Form Submission
+    document.getElementById('createAlertForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            student_id: document.getElementById('alert_student_id').value,
+            alert_type: document.getElementById('alert_type').value,
+            severity: document.getElementById('severity').value,
+            message: document.getElementById('message').value,
+            suggestion: document.getElementById('suggestion').value
+        };
+        
+        fetch('/admin/alerts', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            alert(data.message || 'Alert created successfully');
+            // Close modal and reload
+            const modal = bootstrap.Modal.getInstance(document.getElementById('createAlertModal'));
+            modal.hide();
+            location.reload();
+        })
+        .catch(error => {
+            alert('Error creating alert');
+        });
+    });
+    
+    function resolveAlert(alertId) {
+        if (confirm('Mark this alert as resolved?')) {
+            fetch('/admin/alerts/' + alertId + '/resolve', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({})
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message || 'Alert resolved');
+                location.reload();
+            })
+            .catch(error => alert('Error resolving alert'));
+        }
+    }
+</script>
+{% endblock %}
+{% endblock %}

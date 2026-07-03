@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Student - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item"><a href="{{ url_for('admin.get_students') }}">Students</a></li>
+<li class="breadcrumb-item active">Edit Student</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-user-edit me-2"></i>Edit Student: {{ student.full_name }}
+        </h1>
+        <div>
+            <a href="{{ url_for('admin.get_student', student_id=student.id) }}" class="btn btn-sm btn-outline-primary shadow-sm me-2">
+                <i class="fas fa-eye me-1"></i>View Profile
+            </a>
+            <a href="{{ url_for('admin.get_students') }}" class="btn btn-sm btn-outline-secondary shadow-sm">
+                <i class="fas fa-arrow-left me-1"></i>Back to List
+            </a>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user me-2"></i>Student Information
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="#" id="editStudentForm">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <!-- Personal Information -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-id-card me-2"></i>Personal Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="student_id" class="form-label">Student ID <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="student_id" name="student_id" 
+                                           value="{{ student.student_id }}" required maxlength="20">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="first_name" class="form-label">First Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="first_name" name="first_name" 
+                                           value="{{ student.first_name }}" required maxlength="50">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="last_name" class="form-label">Last Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="last_name" name="last_name" 
+                                           value="{{ student.last_name }}" required maxlength="50">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="date_of_birth" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
+                                           value="{{ student.date_of_birth.strftime('%Y-%m-%d') if student.date_of_birth else '' }}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="gender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="gender" name="gender" required>
+                                        <option value="">Select Gender</option>
+                                        <option value="Male" {{ 'selected' if student.gender == 'Male' else '' }}>Male</option>
+                                        <option value="Female" {{ 'selected' if student.gender == 'Female' else '' }}>Female</option>
+                                        <option value="Other" {{ 'selected' if student.gender == 'Other' else '' }}>Other</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="phone" class="form-label">Phone</label>
+                                    <input type="tel" class="form-control" id="phone" name="phone" 
+                                           value="{{ student.phone or '' }}" maxlength="20">
+                                </div>
+                                <div class="col-12">
+                                    <label for="address" class="form-label">Address</label>
+                                    <textarea class="form-control" id="address" name="address" rows="2">{{ student.address or '' }}</textarea>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Academic Information -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-graduation-cap me-2"></i>Academic Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="course" class="form-label">Course <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="course" name="course" required>
+                                        <option value="">Select Course</option>
+                                        {% for course in courses %}
+                                        <option value="{{ course }}" {{ 'selected' if student.course == course else '' }}>
+                                            {{ course }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="semester" class="form-label">Semester <span class="text-danger">*</span></label>
+                                    <select class="form-select" id="semester" name="semester" required>
+                                        <option value="">Select Semester</option>
+                                        {% for sem in range(1, 9) %}
+                                        <option value="{{ sem }}" {{ 'selected' if student.semester == sem else '' }}>
+                                            Semester {{ sem }}
+                                        </option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="admission_date" class="form-label">Admission Date <span class="text-danger">*</span></label>
+                                    <input type="date" class="form-control" id="admission_date" name="admission_date" 
+                                           value="{{ student.admission_date.strftime('%Y-%m-%d') if student.admission_date else '' }}" required>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <hr>
+                        
+                        <!-- Guardian Information -->
+                        <div class="mb-4">
+                            <h6 class="text-primary mb-3">
+                                <i class="fas fa-users me-2"></i>Guardian Information
+                            </h6>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label for="guardian_name" class="form-label">Guardian Name</label>
+                                    <input type="text" class="form-control" id="guardian_name" name="guardian_name" 
+                                           value="{{ student.guardian_name or '' }}" maxlength="100">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="guardian_phone" class="form-label">Guardian Phone</label>
+                                    <input type="tel" class="form-control" id="guardian_phone" name="guardian_phone" 
+                                           value="{{ student.guardian_phone or '' }}" maxlength="20">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2">
+                            <a href="{{ url_for('admin.get_students') }}" class="btn btn-secondary">Cancel</a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Update Student
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="col-lg-4">
+            <!-- Student Summary Card -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Student Summary
+                    </h6>
+                </div>
+                <div class="card-body text-center">
+                    <div class="avatar avatar-lg mb-3">
+                        <div class="avatar-initial bg-primary rounded-circle" style="width: 80px; height: 80px; font-size: 2rem;">
+                            {{ student.first_name[0] }}{{ student.last_name[0] }}
+                        </div>
+                    </div>
+                    <h5 class="mb-1">{{ student.full_name }}</h5>
+                    <p class="text-muted mb-2">{{ student.student_id }}</p>
+                    <span class="badge bg-{{ 'danger' if student.risk_level == 'High' else 'warning' if student.risk_level == 'Medium' else 'success' }} mb-3">
+                        {{ student.risk_level if student.risk_level else 'Low' }} Risk
+                    </span>
+                    <hr>
+                    <div class="text-start">
+                        <p class="mb-2"><strong>Course:</strong> {{ student.course }}</p>
+                        <p class="mb-2"><strong>Semester:</strong> {{ student.semester }}</p>
+                        <p class="mb-2"><strong>Attendance:</strong> {{ student.attendance_percentage }}%</p>
+                        <p class="mb-0"><strong>Age:</strong> {{ student.age }} years</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-bolt me-2"></i>Quick Actions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="#" class="btn btn-outline-success btn-sm">
+                            <i class="fas fa-calendar-check me-2"></i>Mark Attendance
+                        </a>
+                        <a href="#" class="btn btn-outline-info btn-sm">
+                            <i class="fas fa-chart-line me-2"></i>Add Marks
+                        </a>
+                        <a href="#" class="btn btn-outline-warning btn-sm">
+                            <i class="fas fa-money-bill-wave me-2"></i>Add Fee
+                        </a>
+                        <a href="#" class="btn btn-outline-danger btn-sm">
+                            <i class="fas fa-bell me-2"></i>Send Alert
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

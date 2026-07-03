@@ -1,0 +1,360 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Attendance - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Bulk Attendance</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        <div id="attendanceToast" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body d-flex align-items-center">
+                <i class="toast-icon fas fa-check-circle me-2"></i>
+                <span class="toast-body-text"></span>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-calendar-check me-2"></i>Bulk Attendance Marking
+        </h1>
+        <a href="#" class="btn btn-sm btn-outline-primary shadow-sm">
+            <i class="fas fa-user-check me-1"></i>Single Student
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-9">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-users me-2"></i>Mark Attendance for Multiple Students
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="#" id="bulkAttendanceForm">
+                        <!-- Filters -->
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label for="course" class="form-label">Course <span class="text-danger">*</span></label>
+                                <select class="form-select" id="course" name="course" required>
+                                    <option value="">Select Course</option>
+                                    {% for course in courses %}
+                                    <option value="{{ course }}">{{ course }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="semester" class="form-label">Semester <span class="text-danger">*</span></label>
+                                <select class="form-select" id="semester" name="semester" required>
+                                    <option value="">Select Semester</option>
+                                    {% for sem in range(1, 9) %}
+                                    <option value="{{ sem }}">Semester {{ sem }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-4">
+                                <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end mb-4">
+                            <button type="button" class="btn btn-primary" onclick="loadStudents()">
+                                <i class="fas fa-search me-1"></i>Load Students
+                            </button>
+                        </div>
+                        
+                        <!-- Students Table -->
+                        <div id="studentsTableContainer" style="display: none;">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h6 class="text-primary mb-0">Students</h6>
+                                <div>
+                                    <button type="button" class="btn btn-sm btn-outline-success me-2" onclick="markAll('Present')">
+                                        <i class="fas fa-check me-1"></i>Mark All Present
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger" onclick="markAll('Absent')">
+                                        <i class="fas fa-times me-1"></i>Mark All Absent
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div class="table-responsive">
+                                <table class="table table-hover" id="studentsTable">
+                                    <thead>
+                                        <tr>
+                                            <th width="5%">
+                                                <input type="checkbox" class="form-check-input" id="selectAll" onclick="toggleSelectAll()">
+                                            </th>
+                                            <th width="15%">Student ID</th>
+                                            <th width="30%">Name</th>
+                                            <th width="25%">Status</th>
+                                            <th width="25%">Remarks</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="studentsTableBody">
+                                        <!-- Students will be loaded here -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <button type="reset" class="btn btn-secondary">Reset</button>
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-1"></i>Save Attendance
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Card -->
+        <div class="col-lg-3">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Instructions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">
+                        <strong>Step 1:</strong> Select Course and Semester
+                    </p>
+                    <p class="small text-muted">
+                        <strong>Step 2:</strong> Choose the date
+                    </p>
+                    <p class="small text-muted">
+                        <strong>Step 3:</strong> Click "Load Students"
+                    </p>
+                    <p class="small text-muted">
+                        <strong>Step 4:</strong> Mark attendance for each student
+                    </p>
+                    <hr>
+                    <p class="small text-muted mb-0">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        Use "Mark All Present" or "Mark All Absent" for quick marking.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="h4 mb-0 text-primary" id="totalStudents">0</div>
+                            <div class="small text-muted">Total</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="h4 mb-0 text-success" id="presentCount">0</div>
+                            <div class="small text-muted">Present</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="h4 mb-0 text-danger" id="absentCount">0</div>
+                            <div class="small text-muted">Absent</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="h4 mb-0 text-warning" id="lateCount">0</div>
+                            <div class="small text-muted">Late</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function showToast(message, isSuccess = true) {
+        const toast = document.getElementById('attendanceToast');
+        if (!toast) {
+            alert(message);
+            return;
+        }
+        const toastBody = toast.querySelector('.toast-body');
+        const toastIcon = toast.querySelector('.toast-icon');
+        
+        if (toastBody) toastBody.textContent = message;
+        if (isSuccess) {
+            toast.classList.remove('bg-danger');
+            toast.classList.add('bg-success');
+            if (toastIcon) toastIcon.className = 'toast-icon fas fa-check-circle me-2';
+        } else {
+            toast.classList.remove('bg-success');
+            toast.classList.add('bg-danger');
+            if (toastIcon) toastIcon.className = 'toast-icon fas fa-exclamation-circle me-2';
+        }
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+    }
+    
+    // Set default date to today
+    document.getElementById('date').valueAsDate = new Date();
+    
+    // Load students based on filters
+    function loadStudents() {
+        const course = document.getElementById('course').value;
+        const semester = document.getElementById('semester').value;
+        
+        if (!course || !semester) {
+            alert('Please select Course and Semester');
+            return;
+        }
+        
+        fetch(`/admin/attendance/students?course=${encodeURIComponent(course)}&semester=${semester}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    return;
+                }
+                const students = data.students;
+                renderStudentsTable(students);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Failed to load students');
+            });
+    }
+    
+    function renderStudentsTable(students) {
+        const tbody = document.getElementById('studentsTableBody');
+        tbody.innerHTML = '';
+        
+        if (students.length === 0) {
+            alert('No students found for selected course and semester');
+            return;
+        }
+        
+        students.forEach(student => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>
+                    <input type="checkbox" class="form-check-input student-checkbox" 
+                           value="${student.id}" checked>
+                </td>
+                <td>${student.student_id}</td>
+                <td>${student.name}</td>
+                <td>
+                    <select class="form-select form-select-sm" name="status_${student.id}" 
+                            onchange="updateCounts()">
+                        <option value="Present">Present</option>
+                        <option value="Absent">Absent</option>
+                        <option value="Late">Late</option>
+                        <option value="Excused">Excused</option>
+                    </select>
+                </td>
+                <td>
+                    <input type="text" class="form-control form-control-sm" 
+                           name="remarks_${student.id}" placeholder="Remarks">
+                </td>
+            `;
+            tbody.appendChild(row);
+        });
+        
+        document.getElementById('studentsTableContainer').style.display = 'block';
+        document.getElementById('totalStudents').textContent = students.length;
+        updateCounts();
+    }
+    
+    // Toggle select all
+    function toggleSelectAll() {
+        const selectAll = document.getElementById('selectAll');
+        const checkboxes = document.querySelectorAll('.student-checkbox');
+        checkboxes.forEach(cb => cb.checked = selectAll.checked);
+    }
+    
+    // Mark all students with a specific status
+    function markAll(status) {
+        const selects = document.querySelectorAll('select[name^="status_"]');
+        selects.forEach(select => select.value = status);
+        updateCounts();
+    }
+    
+    // Update counts
+    function updateCounts() {
+        const selects = document.querySelectorAll('select[name^="status_"]');
+        let present = 0, absent = 0, late = 0;
+        
+        selects.forEach(select => {
+            if (select.value === 'Present') present++;
+            else if (select.value === 'Absent') absent++;
+            else if (select.value === 'Late') late++;
+        });
+        
+        document.getElementById('presentCount').textContent = present;
+        document.getElementById('absentCount').textContent = absent;
+        document.getElementById('lateCount').textContent = late;
+    }
+    
+    // Form submission
+    document.getElementById('bulkAttendanceForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const checkboxes = document.querySelectorAll('.student-checkbox:checked');
+        if (checkboxes.length === 0) {
+            alert('Please select at least one student');
+            return false;
+        }
+        
+        const course = document.getElementById('course').value;
+        const semester = document.getElementById('semester').value;
+        const date = document.getElementById('date').value;
+        
+        const attendance = {};
+        checkboxes.forEach(cb => {
+            const studentId = cb.value;
+            const status = document.querySelector(`select[name="status_${studentId}"]`).value;
+            const remarks = document.querySelector(`input[name="remarks_${studentId}"]`).value;
+            attendance[studentId] = status;
+            attendance[`remarks_${studentId}`] = remarks;
+        });
+        
+        fetch('/admin/attendance/bulk', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                course: course,
+                semester: parseInt(semester),
+                date: date,
+                attendance: attendance
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                showToast('Error: ' + data.error, false);
+            } else {
+                showToast('Attendance successfully locked in for ' + data.marked + ' students!');
+                if (data.marked > 0) {
+                    document.getElementById('studentsTableContainer').style.display = 'none';
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Failed to submit attendance');
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

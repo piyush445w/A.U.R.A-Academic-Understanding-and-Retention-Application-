@@ -1,0 +1,230 @@
+{% extends "base.html" %}
+
+{% block title %}Mark Attendance - A.U.R.A{% endblock %}
+
+{% block breadcrumbs %}
+<li class="breadcrumb-item"><a href="{{ url_for('main.dashboard') }}">Home</a></li>
+<li class="breadcrumb-item active">Mark Attendance</li>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Toast Notification -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1100;">
+        <div id="attendanceToast" class="toast bg-success text-white" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-body d-flex align-items-center">
+                <i class="toast-icon fas fa-check-circle me-2"></i>
+                <span class="toast-body-text"></span>
+                <button type="button" class="btn-close btn-close-white ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-calendar-check me-2"></i>Mark Attendance
+        </h1>
+        <a href="#" class="btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-list me-1"></i>View Attendance Records
+        </a>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-user-check me-2"></i>Mark Student Attendance
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST" action="{{ url_for('admin.mark_attendance') }}" id="markAttendanceForm">
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label for="student_id" class="form-label">Student <span class="text-danger">*</span></label>
+                                <select class="form-select" id="student_id" name="student_id" required>
+                                    <option value="">Select Student</option>
+                                    {% for student in students %}
+                                    <option value="{{ student.id }}">
+                                        {{ student.student_id }} - {{ student.full_name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="date" class="form-label">Date <span class="text-danger">*</span></label>
+                                <input type="date" class="form-control" id="date" name="date" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="status" class="form-label">Status <span class="text-danger">*</span></label>
+                                <select class="form-select" id="status" name="status" required>
+                                    <option value="">Select Status</option>
+                                    <option value="Present">Present</option>
+                                    <option value="Absent">Absent</option>
+                                    <option value="Late">Late</option>
+                                    <option value="Excused">Excused</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="remarks" class="form-label">Remarks</label>
+                                <input type="text" class="form-control" id="remarks" name="remarks" 
+                                       placeholder="Optional remarks">
+                            </div>
+                        </div>
+                        
+                        <div class="d-flex justify-content-end gap-2 mt-4">
+                            <button type="reset" class="btn btn-secondary">Reset</button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save me-1"></i>Mark Attendance
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Help Card -->
+        <div class="col-lg-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-info-circle me-2"></i>Instructions
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <p class="small text-muted">
+                        <strong>Select Student:</strong> Choose the student from the dropdown list.
+                    </p>
+                    <p class="small text-muted">
+                        <strong>Date:</strong> Select the date for which attendance is being marked.
+                    </p>
+                    <p class="small text-muted">
+                        <strong>Status:</strong>
+                    </p>
+                    <ul class="small text-muted">
+                        <li><span class="badge bg-success">Present</span> - Student attended</li>
+                        <li><span class="badge bg-danger">Absent</span> - Student did not attend</li>
+                        <li><span class="badge bg-warning">Late</span> - Student arrived late</li>
+                        <li><span class="badge bg-info">Excused</span> - Absence excused</li>
+                    </ul>
+                    <hr>
+                    <p class="small text-muted mb-0">
+                        <i class="fas fa-lightbulb me-1"></i>
+                        For marking multiple students at once, use the Bulk Attendance feature.
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Quick Stats -->
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        <i class="fas fa-chart-pie me-2"></i>Today's Summary
+                    </h6>
+                </div>
+                <div class="card-body">
+                    <div class="row text-center">
+                        <div class="col-6 mb-3">
+                            <div class="h4 mb-0 text-success">{{ today_stats.present if today_stats else 0 }}</div>
+                            <div class="small text-muted">Present</div>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <div class="h4 mb-0 text-danger">{{ today_stats.absent if today_stats else 0 }}</div>
+                            <div class="small text-muted">Absent</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="h4 mb-0 text-warning">{{ today_stats.late if today_stats else 0 }}</div>
+                            <div class="small text-muted">Late</div>
+                        </div>
+                        <div class="col-6">
+                            <div class="h4 mb-0 text-info">{{ today_stats.excused if today_stats else 0 }}</div>
+                            <div class="small text-muted">Excused</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    function showToast(message, isSuccess = true) {
+        const toast = document.getElementById('attendanceToast');
+        if (!toast) {
+            alert(message);
+            return;
+        }
+        const toastBody = toast.querySelector('.toast-body');
+        const toastIcon = toast.querySelector('.toast-icon');
+        
+        if (toastBody) toastBody.textContent = message;
+        if (isSuccess) {
+            toast.classList.remove('bg-danger');
+            toast.classList.add('bg-success');
+            if (toastIcon) toastIcon.className = 'toast-icon fas fa-check-circle me-2';
+        } else {
+            toast.classList.remove('bg-success');
+            toast.classList.add('bg-danger');
+            if (toastIcon) toastIcon.className = 'toast-icon fas fa-exclamation-circle me-2';
+        }
+        
+        const bsToast = new bootstrap.Toast(toast);
+        bsToast.show();
+    }
+    
+    // Set default date to today
+    document.getElementById('date').valueAsDate = new Date();
+    
+    // Form submission with AJAX
+    document.getElementById('markAttendanceForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const studentId = document.getElementById('student_id').value;
+        const date = document.getElementById('date').value;
+        const status = document.getElementById('status').value;
+        const remarks = document.getElementById('remarks').value;
+        
+        console.log('Submitting attendance:', {student_id: studentId, date: date, status: status, remarks: remarks});
+        
+        if (!studentId || !date || !status) {
+            showToast('Please fill in all required fields', false);
+            return false;
+        }
+        
+        fetch('{{ url_for("admin.mark_attendance") }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify({
+                student_id: studentId,
+                date: date,
+                status: status,
+                remarks: remarks
+            })
+        })
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Response data:', data);
+            if (data.error) {
+                showToast('Error: ' + data.error, false);
+            } else {
+                showToast('Attendance successfully marked!');
+                document.getElementById('markAttendanceForm').reset();
+                document.getElementById('date').valueAsDate = new Date();
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showToast('Failed to submit attendance: ' + error.message, false);
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

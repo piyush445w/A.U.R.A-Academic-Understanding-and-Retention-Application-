@@ -1,0 +1,16 @@
+marks_id,student_id,subject,exam_type,marks_obtained,max_marks,grade,exam_date
+MRK001,STU001,Mathematics,Midterm,45,50,A,2024-01-10
+MRK002,STU001,Physics,Midterm,42,50,A,2024-01-10
+MRK003,STU001,Chemistry,Midterm,40,50,B+,2024-01-10
+MRK004,STU001,English,Midterm,44,50,A,2024-01-10
+MRK005,STU001,Computer Science,Midterm,48,50,A+,2024-01-10
+MRK006,STU002,Mathematics,Final,47,50,A+,2024-01-10
+MRK007,STU002,Physics,Final,45,50,A,2024-01-10
+MRK008,STU002,Chemistry,Final,43,50,A,2024-01-10
+MRK009,STU002,English,Final,46,50,A+,2024-01-10
+MRK010,STU002,Computer Science,Final,49,50,A+,2024-01-10
+MRK011,STU003,Mathematics,Midterm,25,50,C,2024-01-10
+MRK012,STU003,Physics,Midterm,22,50,C,2024-01-10
+MRK013,STU003,Chemistry,Midterm,20,50,D,2024-01-10
+MRK014,STU003,English,Midterm,28,50,C+,2024-01-10
+MRK015,STU003,Electronics,Midterm,24,50,C,2024-01-10
