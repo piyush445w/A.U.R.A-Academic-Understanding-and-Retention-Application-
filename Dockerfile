@@ -53,7 +53,7 @@ COPY --from=builder /usr/local/bin/ /usr/local/bin/
 COPY . .
 
 # Create necessary directories
-RUN mkdir -p /app/logs /app/models /app/datasets && \
+RUN mkdir -p /app/logs /app/models /app/datasets /app/instance && \
     chown -R flask:flask /app
 
 # Switch to non-root user

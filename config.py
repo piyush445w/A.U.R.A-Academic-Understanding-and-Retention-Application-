@@ -36,8 +36,10 @@ class Config:
     
     # Database settings - Always use _PROJECT_ROOT to ensure consistent path
     BASE_DIR = str(_PROJECT_ROOT)
+    _INSTANCE_DIR = _PROJECT_ROOT / "instance"
+    _INSTANCE_DIR.mkdir(parents=True, exist_ok=True)
     SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
-        f'sqlite:///{_PROJECT_ROOT / "instance" / "student_risk.db"}'
+        f'sqlite:///{_INSTANCE_DIR / "student_risk.db"}'
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     
     # Application settings
